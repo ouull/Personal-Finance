@@ -27,7 +27,7 @@ export function TransactionList({ transactions, accounts = [] }: { transactions:
   const [filterType, setFilterType] = useState<string>("ALL")
   const [filterAccount, setFilterAccount] = useState<string>("ALL")
 
-  const filteredTransactions = transactions.filter(t => {
+  const filteredTransactions = transactions.filter((t: any) => {
     if (filterType !== "ALL" && t.type !== filterType) return false
     if (filterAccount !== "ALL") {
       const isSourceMatch = t.sourceAccount?.id === filterAccount

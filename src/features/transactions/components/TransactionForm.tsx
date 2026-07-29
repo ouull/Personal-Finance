@@ -110,7 +110,7 @@ export function TransactionForm({ accounts, onSuccess }: TransactionFormProps) {
               <SelectTrigger id="sourceAccountId">
                 {watch("sourceAccountId") ? (
                   <span data-slot="select-value" className="flex flex-1 text-left line-clamp-1">
-                    {accounts.find(a => a.id === watch("sourceAccountId"))?.name}
+                    {accounts.find((a: any) => a.id === watch("sourceAccountId"))?.name}
                   </span>
                 ) : (
                   <SelectValue placeholder="Pilih akun" />
@@ -138,7 +138,7 @@ export function TransactionForm({ accounts, onSuccess }: TransactionFormProps) {
               <SelectTrigger id="destinationAccountId">
                 {watch("destinationAccountId") ? (
                   <span data-slot="select-value" className="flex flex-1 text-left line-clamp-1">
-                    {accounts.find(a => a.id === watch("destinationAccountId"))?.name}
+                    {accounts.find((a: any) => a.id === watch("destinationAccountId"))?.name}
                   </span>
                 ) : (
                   <SelectValue placeholder="Pilih akun" />

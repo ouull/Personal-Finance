@@ -91,7 +91,7 @@ export async function getComprehensiveAnalytics() {
     const accountDistribution = accounts.map((acc: any) => ({
       name: acc.name,
       value: Number(acc.balance)
-    })).filter(acc => acc.value > 0) // Hanya tampilkan yang saldonya > 0
+    })).filter((acc: any) => acc.value > 0) // Hanya tampilkan yang saldonya > 0
 
     return {
       success: true,
