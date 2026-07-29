@@ -48,7 +48,7 @@ export function SpendingChart({ data }: { data: SpendingData[] }) {
                   ))}
                 </Pie>
                 <Tooltip 
-                  formatter={(value: number) => [formatRupiah(value), "Total"]}
+                  formatter={(value: any) => [formatRupiah(value as number), "Pengeluaran"]}
                   contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                 />
                 <Legend verticalAlign="bottom" height={36} iconType="circle" />

@@ -25,7 +25,7 @@ export function AccountForm({ onSuccess }: AccountFormProps) {
   const [isPending, setIsPending] = useState(false)
 
   const { register, handleSubmit, setValue, watch, formState: { errors }, reset } = useForm<AccountFormValues>({
-    resolver: zodResolver(accountSchema),
+    resolver: zodResolver(accountSchema) as any,
     defaultValues: {
       name: "",
       type: "BANK",

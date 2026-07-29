@@ -34,7 +34,7 @@ export function TransactionForm({ accounts, onSuccess }: TransactionFormProps) {
   const [activeTab, setActiveTab] = useState<"EXPENSE" | "INCOME" | "TRANSFER">("EXPENSE")
 
   const { register, handleSubmit, setValue, formState: { errors }, reset, clearErrors, watch } = useForm<TransactionFormValues>({
-    resolver: zodResolver(transactionSchema),
+    resolver: zodResolver(transactionSchema) as any,
     defaultValues: {
       type: "EXPENSE",
       amount: 0,
@@ -105,7 +105,7 @@ export function TransactionForm({ accounts, onSuccess }: TransactionFormProps) {
             <Label htmlFor="sourceAccountId">{activeTab === "TRANSFER" ? "Dari Akun" : "Bayar Dari"}</Label>
             <Select 
               value={watch("sourceAccountId") || ""}
-              onValueChange={(val) => setValue("sourceAccountId", val, { shouldValidate: true })} 
+              onValueChange={(val) => setValue("sourceAccountId", val || undefined, { shouldValidate: true })} 
             >
               <SelectTrigger id="sourceAccountId">
                 {watch("sourceAccountId") ? (
@@ -133,7 +133,7 @@ export function TransactionForm({ accounts, onSuccess }: TransactionFormProps) {
             <Label htmlFor="destinationAccountId">{activeTab === "TRANSFER" ? "Ke Akun" : "Masuk Ke"}</Label>
             <Select 
               value={watch("destinationAccountId") || ""}
-              onValueChange={(val) => setValue("destinationAccountId", val, { shouldValidate: true })} 
+              onValueChange={(val) => setValue("destinationAccountId", val || undefined, { shouldValidate: true })} 
             >
               <SelectTrigger id="destinationAccountId">
                 {watch("destinationAccountId") ? (

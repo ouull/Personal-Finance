@@ -22,7 +22,7 @@ export async function POST(request: Request) {
     const transactionAmount = Number(amount)
 
     // 3. Simpan Transaksi dengan Prisma Transaction
-    const transaction = await db.$transaction(async (tx) => {
+    const transaction = await db.$transaction(async (tx: any) => {
       // Buat record transaksi
       const newTx = await tx.transaction.create({
         data: {
