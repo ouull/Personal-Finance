@@ -31,7 +31,7 @@ export default async function DashboardPage() {
   const spendingByCategoryData = compAnalyticsResult.success ? compAnalyticsResult.data?.spendingByCategory || [] : []
   const accountDistributionData = compAnalyticsResult.success ? compAnalyticsResult.data?.accountDistribution || [] : []
 
-  const totalBalance = accounts.reduce((acc, account) => {
+  const totalBalance = accounts.reduce((acc: number, account: any) => {
     return acc + Number(account.balance)
   }, 0)
 
