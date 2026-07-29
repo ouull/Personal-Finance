@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { db } from "@/lib/db"
+import { revalidatePath } from "next/cache"
 
 export async function POST(request: Request) {
   try {
@@ -61,6 +62,9 @@ export async function POST(request: Request) {
       return newTx
     })
 
+    revalidatePath("/")
+    revalidatePath("/transactions")
+    
     return NextResponse.json({ success: true, data: transaction })
   } catch (error) {
     console.error("Quick Capture Error:", error)
