@@ -11,7 +11,7 @@ export async function getAccounts() {
     })
     
     // Convert Decimal to Number to prevent Next.js serialization error
-    const serializedAccounts = accounts.map(acc => ({
+    const serializedAccounts = accounts.map((acc: any) => ({
       ...acc,
       balance: Number(acc.balance)
     }))

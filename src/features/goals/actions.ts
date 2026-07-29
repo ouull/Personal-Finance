@@ -19,7 +19,7 @@ export async function getGoals() {
       orderBy: { createdAt: "desc" },
     })
 
-    const serializedGoals = goals.map(goal => ({
+    const serializedGoals = goals.map((goal: any) => ({
       ...goal,
       targetAmount: Number(goal.targetAmount),
       currentAmount: Number(goal.currentAmount)

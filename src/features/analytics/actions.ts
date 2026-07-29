@@ -88,7 +88,7 @@ export async function getComprehensiveAnalytics() {
 
     // 2. Account Distribution (Persentase saldo antar akun)
     const accounts = await db.account.findMany()
-    const accountDistribution = accounts.map(acc => ({
+    const accountDistribution = accounts.map((acc: any) => ({
       name: acc.name,
       value: Number(acc.balance)
     })).filter(acc => acc.value > 0) // Hanya tampilkan yang saldonya > 0

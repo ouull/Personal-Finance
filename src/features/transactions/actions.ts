@@ -73,7 +73,7 @@ export async function getRecentTransactions(limit = 5) {
       }
     })
 
-    const serializedTransactions = transactions.map(tx => ({
+    const serializedTransactions = transactions.map((tx: any) => ({
       ...tx,
       amount: Number(tx.amount),
       sourceAccount: tx.sourceAccount ? {
