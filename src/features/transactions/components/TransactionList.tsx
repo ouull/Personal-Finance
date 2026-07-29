@@ -44,7 +44,7 @@ export function TransactionList({ transactions, accounts = [] }: { transactions:
     let csv = "Tanggal;Tipe;Nominal;Keterangan;Dari Akun;Ke Akun\n"
     
     // Rows
-    filteredTransactions.forEach(t => {
+    filteredTransactions.forEach((t: any) => {
       const dateStr = format(new Date(t.date), "yyyy-MM-dd")
       const typeStr = t.type === "INCOME" ? "Pemasukan" : t.type === "EXPENSE" ? "Pengeluaran" : "Transfer"
       const amountStr = t.amount.toString()

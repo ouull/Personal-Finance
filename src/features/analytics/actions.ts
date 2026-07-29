@@ -36,7 +36,7 @@ export async function getCashFlowData() {
     }
 
     // Hitung aggregate
-    transactions.forEach((tx) => {
+    transactions.forEach((tx: any) => {
       const d = new Date(tx.date)
       const key = `${d.getFullYear()}-${d.getMonth()}`
       
@@ -74,7 +74,7 @@ export async function getComprehensiveAnalytics() {
     })
     
     const spendingByCategory: Record<string, number> = {}
-    expenses.forEach(tx => {
+    expenses.forEach((tx: any) => {
       // Jika kategori tidak ada (misal tidak dipilih), masukkan ke "Lainnya"
       const catName = tx.category?.name || "Lainnya"
       spendingByCategory[catName] = (spendingByCategory[catName] || 0) + Number(tx.amount)
