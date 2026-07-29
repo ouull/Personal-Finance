@@ -1,0 +1,77 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Account {
+  id        String   @id @default(cuid())
+  name      String
+  type      String   // CASH, BANK, EWALLET, INVESTMENT
+  balance   Decimal  @default(0.0)
+  currency  String   @default("IDR")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  transactionsFrom Transaction[] @relation("SourceAccount")
+  transactionsTo   Transaction[] @relation("DestinationAccount")
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  name      String
+  type      String   // INCOME, EXPENSE
+  icon      String?
+  color     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  transactions Transaction[]
+  budgets      Budget[]
+}
+
+model Transaction {
+  id              String          @id @default(cuid())
+  type            String          // INCOME, EXPENSE, TRANSFER
+  amount          Decimal
+  date            DateTime        @default(now())
+  description     String?
+  
+  categoryId      String?
+  category        Category?       @relation(fields: [categoryId], references: [id])
+
+  sourceAccountId String?
+  sourceAccount   Account?        @relation("SourceAccount", fields: [sourceAccountId], references: [id])
+
+  destinationAccountId String?
+  destinationAccount   Account?   @relation("DestinationAccount", fields: [destinationAccountId], references: [id])
+
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
+
+model Budget {
+  id          String   @id @default(cuid())
+  categoryId  String
+  category    Category @relation(fields: [categoryId], references: [id])
+  amount      Decimal
+  month       Int
+  year        Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([categoryId, month, year])
+}
+
+model Goal {
+  id            String   @id @default(cuid())
+  name          String
+  targetAmount  Decimal
+  currentAmount Decimal  @default(0.0)
+  deadline      DateTime?
+  color         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
