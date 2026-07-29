@@ -9,7 +9,7 @@ export async function createTransaction(data: TransactionFormValues) {
     const parsed = transactionSchema.parse(data)
     
     // We use a database transaction to ensure atomicity
-    await db.$transaction(async (tx) => {
+    await db.$transaction(async (tx: any) => {
       // 1. Buat record transaksi
       const transaction = await tx.transaction.create({
         data: {
