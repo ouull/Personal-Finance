@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button"
 import { ArrowDownRight, ArrowRightLeft, ArrowUpRight, Wallet, Download } from "lucide-react"
 import { format } from "date-fns"
 import { id } from "date-fns/locale"
+import { EditTransactionDialog } from "./EditTransactionDialog"
+import { useTranslation } from "@/lib/TranslationContext"
 
 interface Account {
   id: string
@@ -23,7 +25,14 @@ interface Transaction {
   destinationAccount?: { id: string, name: string } | null
 }
 
-export function TransactionList({ transactions, accounts = [] }: { transactions: Transaction[], accounts?: Account[] }) {
+interface Category {
+  id: string
+  name: string
+  icon?: string | null
+}
+
+export function TransactionList({ transactions, accounts = [], categories = [], groupTranslations = {} }: { transactions: Transaction[], accounts?: Account[], categories?: Category[], groupTranslations?: Record<string, string> }) {
+  const { t, language } = useTranslation()
   const [filterType, setFilterType] = useState<string>("ALL")
   const [filterAccount, setFilterAccount] = useState<string>("ALL")
 
@@ -84,10 +93,10 @@ export function TransactionList({ transactions, accounts = [] }: { transactions:
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
           >
-            <option value="ALL">All Types</option>
-            <option value="INCOME">Income</option>
-            <option value="EXPENSE">Expense</option>
-            <option value="TRANSFER">Transfer</option>
+            <option value="ALL">{t.transactionsPage?.allTypes || "All Types"}</option>
+            <option value="INCOME">{t.transactionsPage?.income || "Income"}</option>
+            <option value="EXPENSE">{t.transactionsPage?.expense || "Expense"}</option>
+            <option value="TRANSFER">{t.transactionsPage?.transfer || "Transfer"}</option>
           </select>
 
           <select 
@@ -95,7 +104,7 @@ export function TransactionList({ transactions, accounts = [] }: { transactions:
             value={filterAccount}
             onChange={(e) => setFilterAccount(e.target.value)}
           >
-            <option value="ALL">All Accounts</option>
+            <option value="ALL">{t.transactionsPage?.allAccounts || "All Accounts"}</option>
             {accounts.map(acc => (
               <option key={acc.id} value={acc.id}>{acc.name}</option>
             ))}
@@ -103,25 +112,27 @@ export function TransactionList({ transactions, accounts = [] }: { transactions:
         </div>
 
         <Button onClick={handleExportCSV} variant="outline" size="sm" className="gap-2 w-full sm:w-auto">
-          <Download className="w-4 h-4" /> Export CSV
+          <Download className="w-4 h-4" /> {t.transactionsPage?.exportCSV || "Export CSV"}
         </Button>
       </div>
 
       {filteredTransactions.length === 0 ? (
         <div className="text-center p-8 border rounded-xl bg-slate-50/50 border-dashed">
-          <p className="text-muted-foreground text-sm">No transactions match the filter.</p>
+          <p className="text-muted-foreground text-sm">{t.transactionsPage?.emptyFiltered || "No transactions match the filter."}</p>
         </div>
       ) : (
         <div className="space-y-3">
           {filteredTransactions.map((t) => {
-            const isIncome = t.type === "INCOME"
+            const isIncome = t.type === "INCOME" || t.type === "INITIAL_BALANCE"
+            const isInitial = t.type === "INITIAL_BALANCE"
             const isTransfer = t.type === "TRANSFER"
             
             return (
               <Card key={t.id} className="p-4 flex items-center justify-between bg-white/60 backdrop-blur-md border-white/50 hover:bg-white/90 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 shadow-sm">
                 <div className="flex items-center gap-4">
                   <div className={`p-2 rounded-full ${
-                    isIncome ? "bg-emerald-100 text-emerald-600" 
+                    isInitial ? "bg-indigo-100 text-indigo-600"
+                    : isIncome ? "bg-emerald-100 text-emerald-600" 
                     : isTransfer ? "bg-blue-100 text-blue-600" 
                     : "bg-rose-100 text-rose-600"
                   }`}>
@@ -151,8 +162,11 @@ export function TransactionList({ transactions, accounts = [] }: { transactions:
                   </div>
                 </div>
 
-                <div className={`font-bold ${isIncome ? "text-emerald-600" : isTransfer ? "text-slate-900" : "text-slate-900"}`}>
-                  {isIncome ? "+" : isTransfer ? "" : "-"}{formatRupiah(Number(t.amount))}
+                <div className="flex items-center gap-3">
+                  <div className={`font-bold ${isIncome ? "text-emerald-600" : isTransfer ? "text-slate-900" : "text-slate-900"}`}>
+                    {isIncome ? "+" : isTransfer ? "" : "-"}{formatRupiah(Number(t.amount))}
+                  </div>
+                  <EditTransactionDialog transaction={t as any} accounts={accounts} categories={categories} groupTranslations={groupTranslations} />
                 </div>
               </Card>
             )

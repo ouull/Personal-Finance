@@ -1,11 +1,65 @@
 "use server"
 
 import { db } from "@/lib/db"
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/lib/auth"
+
+async function getUserId() {
+  const session = await getServerSession(authOptions)
+  if (!session?.user?.id) {
+    throw new Error("Unauthorized")
+  }
+  return session.user.id
+}
+
+export async function getNetWorth() {
+  try {
+    const userId = await getUserId()
+    
+    // 1. Account Balances
+    const accounts = await db.account.findMany({ where: { userId } })
+    const totalCash = accounts.reduce((sum: number, acc: any) => sum + Number(acc.balance), 0)
+
+    // 2. Receivables (Outstanding Loans)
+    const loans = await db.loan.findMany({
+      where: { userId, status: { in: ["OUTSTANDING", "PARTIALLY_PAID", "OVERDUE"] } },
+      include: { repayments: true }
+    })
+    const totalReceivables = loans.reduce((sum: number, loan: any) => {
+      const repaid = loan.repayments.reduce((rSum: number, r: any) => rSum + Number(r.amount), 0)
+      return sum + (Number(loan.amount) - repaid)
+    }, 0)
+
+    // 3. Investments
+    const investments = await db.investment.findMany({
+      where: { userId, status: "ACTIVE" }
+    })
+    const totalInvestments = investments.reduce((sum: number, inv: any) => sum + Number(inv.currentValue), 0)
+
+    const netWorth = totalCash + totalReceivables + totalInvestments
+
+    return { 
+      success: true, 
+      data: {
+        netWorth,
+        totalCash,
+        totalReceivables,
+        totalInvestments
+      }
+    }
+  } catch (error: any) {
+    if (error.message === "Unauthorized") return { success: false, error: "Unauthorized" }
+    console.error("Get net worth error:", error)
+    return { success: false, error: "Failed to fetch net worth" }
+  }
+}
 
 export async function getCashFlowData() {
   try {
+    const userId = await getUserId()
     const transactions = await db.transaction.findMany({
       where: {
+        userId,
         type: {
           in: ["INCOME", "EXPENSE"],
         },
@@ -17,11 +71,7 @@ export async function getCashFlowData() {
       },
     })
 
-    // Kelompokkan berdasarkan bulan
-    // Format yang diharapkan chart: [{ name: "Jan", income: 4000, expense: 2400 }, ...]
     const monthlyData: Record<string, { name: string, income: number, expense: number }> = {}
-
-    // Inisialisasi 6 bulan terakhir agar urutan chart tetap bagus
     const months = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Ags", "Sep", "Okt", "Nov", "Des"]
     const today = new Date()
     
@@ -35,7 +85,6 @@ export async function getCashFlowData() {
       }
     }
 
-    // Hitung aggregate
     transactions.forEach((tx: any) => {
       const d = new Date(tx.date)
       const key = `${d.getFullYear()}-${d.getMonth()}`
@@ -50,58 +99,78 @@ export async function getCashFlowData() {
     })
 
     return { success: true, data: Object.values(monthlyData) }
-  } catch (error) {
-    console.error("Get cash flow error:", error)
+  } catch (error: any) {
+    if (error.message === "Unauthorized") return { success: false, error: "Unauthorized" }
     return { success: false, error: "Failed to fetch cash flow data" }
   }
 }
 
 export async function getComprehensiveAnalytics() {
   try {
-    // 1. Spending by Category (Pengeluaran bulan ini)
+    const userId = await getUserId()
     const startOfMonth = new Date()
     startOfMonth.setDate(1)
     startOfMonth.setHours(0, 0, 0, 0)
     
+    const endOfMonth = new Date(startOfMonth)
+    endOfMonth.setMonth(endOfMonth.getMonth() + 1)
+    
     const expenses = await db.transaction.findMany({
       where: {
+        userId,
         type: "EXPENSE",
-        date: { gte: startOfMonth }
+        date: { gte: startOfMonth, lt: endOfMonth }
       },
       include: {
         category: true
       }
     })
     
-    const spendingByCategory: Record<string, number> = {}
+    let totalExpense = 0
+    const spendingByCategory: Record<string, { value: number, slug: string | null }> = {}
+    
     expenses.forEach((tx: any) => {
-      // Jika kategori tidak ada (misal tidak dipilih), masukkan ke "Lainnya"
+      const amount = Number(tx.amount)
       const catName = tx.category?.name || "Lainnya"
-      spendingByCategory[catName] = (spendingByCategory[catName] || 0) + Number(tx.amount)
+      const catSlug = tx.category?.slug || null
+      
+      if (!spendingByCategory[catName]) {
+        spendingByCategory[catName] = { value: 0, slug: catSlug }
+      }
+      spendingByCategory[catName].value += amount
+      totalExpense += amount
     })
     
-    // Format untuk PieChart: [{ name: "Makanan", value: 100000 }]
-    const spendingData = Object.entries(spendingByCategory).map(([name, value]) => ({
-      name,
-      value
-    }))
+    const spendingData = Object.entries(spendingByCategory)
+      .map(([name, data]) => ({
+        name,
+        slug: data.slug,
+        value: data.value,
+        percentage: totalExpense > 0 ? (data.value / totalExpense) * 100 : 0
+      }))
+      .sort((a, b) => b.value - a.value)
 
-    // 2. Account Distribution (Persentase saldo antar akun)
-    const accounts = await db.account.findMany()
+    const topCategory = spendingData.length > 0 ? spendingData[0] : null
+
+    const accounts = await db.account.findMany({
+      where: { userId }
+    })
     const accountDistribution = accounts.map((acc: any) => ({
       name: acc.name,
       value: Number(acc.balance)
-    })).filter((acc: any) => acc.value > 0) // Hanya tampilkan yang saldonya > 0
+    })).filter((acc: any) => acc.value > 0)
 
     return {
       success: true,
       data: {
         spendingByCategory: spendingData,
+        topCategory,
+        totalExpense,
         accountDistribution
       }
     }
-  } catch (error) {
-    console.error("Get analytics error:", error)
+  } catch (error: any) {
+    if (error.message === "Unauthorized") return { success: false, error: "Unauthorized" }
     return { success: false, error: "Failed to fetch analytics data" }
   }
 }

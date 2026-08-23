@@ -6,72 +6,222 @@ datasource db {
   provider = "postgresql"
 }
 
-model Account {
+model User {
   id        String   @id @default(cuid())
-  name      String
-  type      String   // CASH, BANK, EWALLET, INVESTMENT
-  balance   Decimal  @default(0.0)
-  currency  String   @default("IDR")
+  name      String?
+  email     String   @unique
+  password  String?
+  language  String   @default("ID") // ID, EN
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  transactionsFrom Transaction[] @relation("SourceAccount")
-  transactionsTo   Transaction[] @relation("DestinationAccount")
+  accounts          Account[]
+  categories        Category[]
+  merchants         Merchant[]
+  transactions      Transaction[]
+  loans             Loan[]
+  investments       Investment[]
+  recurringPayments RecurringPayment[]
+  budgets           Budget[]
+  goals             Goal[]
+  notifications     Notification[]
+}
+
+model Account {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  type      String // CASH, BANK, EWALLET, INVESTMENT
+  balance   Decimal  @default(0.0)
+  currency  String   @default("IDR")
+  isActive  Boolean  @default(true)
+  isSystem  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  transactionsFrom Transaction[]           @relation("SourceAccount")
+  transactionsTo   Transaction[]           @relation("DestinationAccount")
+  loans            Loan[]
+  repayments       Repayment[]
+  investmentTx     InvestmentTransaction[]
+  recurring        RecurringPayment[]
 }
 
 model Category {
   id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   name      String
-  type      String   // INCOME, EXPENSE
+  slug      String? // System category stable identity
+  type      String // INCOME, EXPENSE
   icon      String?
   color     String?
+  isDefault Boolean  @default(false)
+  isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  transactions      Transaction[]
+  merchants         Merchant[]
+  budgets           Budget[]
+  recurringPayments RecurringPayment[]
+}
+
+model Merchant {
+  id                String    @id @default(cuid())
+  userId            String
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name              String
+  defaultCategoryId String?
+  defaultCategory   Category? @relation(fields: [defaultCategoryId], references: [id])
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
   transactions Transaction[]
-  budgets      Budget[]
 }
 
 model Transaction {
-  id              String          @id @default(cuid())
-  type            String          // INCOME, EXPENSE, TRANSFER
-  amount          Decimal
-  date            DateTime        @default(now())
-  description     String?
-  
-  categoryId      String?
-  category        Category?       @relation(fields: [categoryId], references: [id])
-
-  sourceAccountId String?
-  sourceAccount   Account?        @relation("SourceAccount", fields: [sourceAccountId], references: [id])
-
+  id                   String    @id @default(cuid())
+  userId               String
+  user                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  categoryId           String?
+  category             Category? @relation(fields: [categoryId], references: [id])
+  merchantId           String?
+  merchant             Merchant? @relation(fields: [merchantId], references: [id])
+  sourceAccountId      String?
+  sourceAccount        Account?  @relation("SourceAccount", fields: [sourceAccountId], references: [id])
   destinationAccountId String?
-  destinationAccount   Account?   @relation("DestinationAccount", fields: [destinationAccountId], references: [id])
+  destinationAccount   Account?  @relation("DestinationAccount", fields: [destinationAccountId], references: [id])
 
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
+  type        String // INCOME, EXPENSE, TRANSFER
+  amount      Decimal
+  date        DateTime @default(now())
+  description String?
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Loan {
+  id           String    @id @default(cuid())
+  userId       String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accountId    String
+  account      Account   @relation(fields: [accountId], references: [id])
+  borrowerName String
+  amount       Decimal
+  lentDate     DateTime
+  dueDate      DateTime?
+  status       String    @default("OUTSTANDING") // OUTSTANDING, PARTIALLY_PAID, PAID, OVERDUE
+  notes        String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  repayments Repayment[]
+}
+
+model Repayment {
+  id        String   @id @default(cuid())
+  loanId    String
+  loan      Loan     @relation(fields: [loanId], references: [id], onDelete: Cascade)
+  accountId String
+  account   Account  @relation(fields: [accountId], references: [id])
+  amount    Decimal
+  paidDate  DateTime @default(now())
+  notes     String?
+  createdAt DateTime @default(now())
+}
+
+model Investment {
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name          String
+  type          String // STOCK, MUTUAL_FUND, BOND, GOLD, CRYPTO, OTHER
+  platform      String?
+  totalInvested Decimal   @default(0.0) // This tracks the remaining cost basis
+  currentValue  Decimal   @default(0.0)
+  realizedGain  Decimal   @default(0.0)
+  purchaseDate  DateTime?
+  status        String    @default("ACTIVE") // ACTIVE, SOLD, CLOSED
+  notes         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  transactions InvestmentTransaction[]
+}
+
+model InvestmentTransaction {
+  id           String     @id @default(cuid())
+  investmentId String
+  investment   Investment @relation(fields: [investmentId], references: [id], onDelete: Cascade)
+  accountId    String?
+  account      Account?   @relation(fields: [accountId], references: [id])
+  type         String // BUY, SELL, DEPOSIT, WITHDRAW, DIVIDEND, INTEREST, FEE
+  amount       Decimal
+  date         DateTime   @default(now())
+  notes        String?
+  createdAt    DateTime   @default(now())
+}
+
+model RecurringPayment {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accountId    String
+  account      Account  @relation(fields: [accountId], references: [id])
+  categoryId   String
+  category     Category @relation(fields: [categoryId], references: [id])
+  name         String
+  type         String // SUBSCRIPTION, BILL, RECURRING_EXPENSE
+  amount       Decimal
+  billingCycle String // WEEKLY, MONTHLY, QUARTERLY, YEARLY
+  nextDueDate  DateTime
+  reminderDays Int      @default(3)
+  status       String   @default("ACTIVE") // ACTIVE, PAUSED, CANCELLED
+  notes        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
 
 model Budget {
-  id          String   @id @default(cuid())
-  categoryId  String
-  category    Category @relation(fields: [categoryId], references: [id])
-  amount      Decimal
-  month       Int
-  year        Int
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id])
+  amount     Decimal
+  month      Int
+  year       Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
-  @@unique([categoryId, month, year])
+  @@unique([userId, categoryId, month, year])
 }
 
 model Goal {
-  id            String   @id @default(cuid())
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   name          String
   targetAmount  Decimal
-  currentAmount Decimal  @default(0.0)
+  currentAmount Decimal   @default(0.0)
   deadline      DateTime?
   color         String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  status        String    @default("ACTIVE") // ACTIVE, COMPLETED, CANCELLED
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Notification {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type        String // LOAN_DUE, RECURRING_PAYMENT, BUDGET_WARNING, SYSTEM
+  title       String
+  message     String
+  scheduledAt DateTime?
+  readAt      DateTime?
+  createdAt   DateTime  @default(now())
 }

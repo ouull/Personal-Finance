@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/incompatible-library */
+
 "use client"
 
 import { useState } from "react"
@@ -16,12 +18,14 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { toast } from "sonner"
+import { useTranslation } from "@/lib/TranslationContext"
 
 interface AccountFormProps {
   onSuccess?: () => void
 }
 
 export function AccountForm({ onSuccess }: AccountFormProps) {
+  const { t } = useTranslation()
   const [isPending, setIsPending] = useState(false)
 
   const { register, handleSubmit, setValue, watch, formState: { errors }, reset } = useForm<AccountFormValues>({
@@ -40,43 +44,42 @@ export function AccountForm({ onSuccess }: AccountFormProps) {
     setIsPending(false)
 
     if (result.success) {
-      toast.success("Account created successfully")
+      toast.success(t.common?.success || "Account created successfully")
       reset()
       onSuccess?.()
     } else {
-      toast.error(result.error || "An error occurred")
+      toast.error(result.error || t.common?.error || "An error occurred")
     }
   }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="name">Account Name</Label>
+        <Label htmlFor="name">{t.accountsPage?.accountName || "Account Name"}</Label>
         <Input id="name" placeholder="e.g. Main Bank, Cash" {...register("name")} />
-        {errors.name && <p className="text-sm text-red-500">{errors.name.message}</p>}
+        {errors.name && <p className="text-sm text-red-500">{errors.name.message as string}</p>}
       </div>
       
       <div className="space-y-2">
-        <Label htmlFor="type">Account Type</Label>
+        <Label htmlFor="type">{t.accountsPage?.accountType || "Account Type"}</Label>
         <Select 
           defaultValue="BANK" 
           onValueChange={(value) => setValue("type", value as any)}
         >
           <SelectTrigger id="type">
-            <SelectValue placeholder="Select account type" />
+            <SelectValue placeholder="Select type" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="BANK">Bank</SelectItem>
-            <SelectItem value="EWALLET">E-Wallet</SelectItem>
-            <SelectItem value="CASH">Cash</SelectItem>
-            <SelectItem value="INVESTMENT">Investment</SelectItem>
+            <SelectItem value="BANK">{t.accountsPage?.bank || "Bank Account"}</SelectItem>
+            <SelectItem value="EWALLET">{t.accountsPage?.ewallet || "E-Wallet"}</SelectItem>
+            <SelectItem value="INVESTMENT">{t.accountsPage?.investment || "Investment"}</SelectItem>
           </SelectContent>
         </Select>
-        {errors.type && <p className="text-sm text-red-500">{errors.type.message}</p>}
+        {errors.type && <p className="text-sm text-red-500">{errors.type.message as string}</p>}
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="balance">Initial Balance (Rp)</Label>
+        <Label htmlFor="balance">{t.accountsPage?.initialBalance || "Initial Balance"} (Rp)</Label>
         <Input 
           id="balance" 
           type="text" 
@@ -96,7 +99,7 @@ export function AccountForm({ onSuccess }: AccountFormProps) {
       </div>
       
       <Button type="submit" className="w-full" disabled={isPending}>
-        {isPending ? "Saving..." : "Save Account"}
+        {isPending ? (t.common?.loading || "Saving...") : (t.common?.save || "Save Account")}
       </Button>
     </form>
   )

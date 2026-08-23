@@ -12,6 +12,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
 import { TransactionForm } from "./TransactionForm"
+import { useTranslation } from "@/lib/TranslationContext"
 
 interface Account {
   id: string
@@ -19,31 +20,47 @@ interface Account {
   balance: any
 }
 
-interface TransactionDialogProps {
-  accounts: Account[]
+interface Category {
+  id: string
+  name: string
+  type: string
+  icon?: string | null
 }
 
-export function TransactionDialog({ accounts }: TransactionDialogProps) {
+interface TransactionDialogProps {
+  accounts: Account[]
+  categories?: Category[]
+  groupTranslations?: Record<string, string>
+  trigger?: React.ReactElement
+}
+
+export function TransactionDialog({ accounts, categories = [], groupTranslations = {}, trigger }: TransactionDialogProps) {
+  const { t } = useTranslation()
   const [open, setOpen] = useState(false)
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button className="bg-primary hover:bg-primary/90" />}>
-        <Plus className="mr-2 h-4 w-4" /> Record Transaction
-      </DialogTrigger>
+      <DialogTrigger render={
+        trigger || (
+          <Button className="bg-primary hover:bg-primary/90 w-full sm:w-auto h-11 sm:h-10 text-base sm:text-sm font-medium">
+            <Plus className="mr-2 h-5 w-5 sm:h-4 sm:w-4" />
+            {t.transactionsPage?.addTransaction || "Add Transaction"}
+          </Button>
+        )
+      } />
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Record New Transaction</DialogTitle>
+          <DialogTitle>{t.transactionsPage?.addTransaction || "Record New Transaction"}</DialogTitle>
           <DialogDescription>
-            Enter your transaction details below.
+            {t.transactionsPage?.description || "Enter your transaction details below."}
           </DialogDescription>
         </DialogHeader>
         {accounts.length === 0 ? (
           <div className="text-center p-6 text-sm text-muted-foreground">
-            You don't have any accounts yet. Please add an account first before recording a transaction.
+            {t.transactionsPage?.noAccounts || "You don't have any accounts yet. Please add an account first before recording a transaction."}
           </div>
         ) : (
-          <TransactionForm accounts={accounts} onSuccess={() => setOpen(false)} />
+          <TransactionForm accounts={accounts} categories={categories} groupTranslations={groupTranslations} onSuccess={() => setOpen(false)} />
         )}
       </DialogContent>
     </Dialog>

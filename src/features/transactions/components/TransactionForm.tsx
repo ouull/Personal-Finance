@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/incompatible-library */
+
 "use client"
 
 import { useState } from "react"
@@ -15,8 +17,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { CategoryPicker } from "@/components/CategoryPicker"
+import { Tabs,  TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { toast } from "sonner"
+import { useTranslation } from "@/lib/TranslationContext"
 
 interface Account {
   id: string
@@ -24,14 +28,26 @@ interface Account {
   balance: any
 }
 
+interface Category {
+  id: string
+  name: string
+  type: string
+  icon?: string | null
+}
+
 interface TransactionFormProps {
   accounts: Account[]
+  categories?: Category[]
+  groupTranslations?: Record<string, string>
   onSuccess?: () => void
 }
 
-export function TransactionForm({ accounts, onSuccess }: TransactionFormProps) {
+export function TransactionForm({ accounts, categories = [], groupTranslations = {}, onSuccess }: TransactionFormProps) {
+  const { t } = useTranslation()
   const [isPending, setIsPending] = useState(false)
   const [activeTab, setActiveTab] = useState<"EXPENSE" | "INCOME" | "TRANSFER">("EXPENSE")
+
+  const filteredCategories = categories.filter(c => c.type === activeTab)
 
   const { register, handleSubmit, setValue, formState: { errors }, reset, clearErrors, watch } = useForm<TransactionFormValues>({
     resolver: zodResolver(transactionSchema) as any,
@@ -42,6 +58,9 @@ export function TransactionForm({ accounts, onSuccess }: TransactionFormProps) {
       date: new Date(),
     },
   })
+
+  const sourceAccountIdVal = watch("sourceAccountId")
+  const destinationAccountIdVal = watch("destinationAccountId")
 
   // Perbarui tipe saat tab berubah
   const handleTabChange = (val: string) => {
@@ -57,30 +76,25 @@ export function TransactionForm({ accounts, onSuccess }: TransactionFormProps) {
     setIsPending(false)
 
     if (result.success) {
-      toast.success("Transaction recorded successfully")
-      reset({
-        type: activeTab,
-        amount: 0,
-        description: "",
-        date: new Date(),
-      })
+      toast.success(t.common?.success || "Berhasil")
+      reset()
       onSuccess?.()
     } else {
-      toast.error(result.error || "An error occurred")
+      toast.error(result.error || t.common?.error || "Gagal")
     }
   }
 
   return (
     <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
       <TabsList className="grid w-full grid-cols-3 mb-6">
-        <TabsTrigger value="EXPENSE">Expense</TabsTrigger>
-        <TabsTrigger value="INCOME">Income</TabsTrigger>
-        <TabsTrigger value="TRANSFER">Transfer</TabsTrigger>
+        <TabsTrigger value="EXPENSE">{t.transactionsPage?.expense || "Expense"}</TabsTrigger>
+        <TabsTrigger value="INCOME">{t.transactionsPage?.income || "Income"}</TabsTrigger>
+        <TabsTrigger value="TRANSFER">{t.transactionsPage?.transfer || "Transfer"}</TabsTrigger>
       </TabsList>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="amount">Amount (Rp)</Label>
+          <Label htmlFor="amount">{t.transactionsPage?.amount || "Amount"}</Label>
           <Input 
             id="amount" 
             type="text" 
@@ -102,18 +116,18 @@ export function TransactionForm({ accounts, onSuccess }: TransactionFormProps) {
 
         {(activeTab === "EXPENSE" || activeTab === "TRANSFER") && (
           <div className="space-y-2">
-            <Label htmlFor="sourceAccountId">{activeTab === "TRANSFER" ? "From Account" : "Pay from"}</Label>
+            <Label htmlFor="sourceAccountId">{activeTab === "TRANSFER" ? (t.transactionsPage?.sourceAccount || "From Account") : (t.transactionsPage?.payFrom || "Pay from")}</Label>
             <Select 
-              value={watch("sourceAccountId") || ""}
-              onValueChange={(val) => setValue("sourceAccountId", val || undefined, { shouldValidate: true })} 
+              value={sourceAccountIdVal || ""}
+              onValueChange={(val) => setValue("sourceAccountId", (val || undefined) as any, { shouldValidate: true })} 
             >
               <SelectTrigger id="sourceAccountId">
-                {watch("sourceAccountId") ? (
+                {sourceAccountIdVal ? (
                   <span data-slot="select-value" className="flex flex-1 text-left line-clamp-1">
-                    {accounts.find((a: any) => a.id === watch("sourceAccountId"))?.name}
+                    {accounts.find((a: any) => a.id === sourceAccountIdVal)?.name}
                   </span>
                 ) : (
-                  <SelectValue placeholder="Select account" />
+                  <SelectValue placeholder={t.transactionsPage?.selectAccount || "Select account"} />
                 )}
               </SelectTrigger>
               <SelectContent>
@@ -128,25 +142,39 @@ export function TransactionForm({ accounts, onSuccess }: TransactionFormProps) {
           </div>
         )}
 
+        {activeTab === "EXPENSE" && (
+          <div className="space-y-2">
+            <Label htmlFor="categoryId">{t.transactionsPage?.category || "Category"}</Label>
+            <CategoryPicker
+              categories={filteredCategories}
+              value={watch("categoryId") || ""}
+              onChange={(val) => setValue("categoryId", val as any, { shouldValidate: true })}
+              error={!!errors.categoryId}
+              groupTranslations={groupTranslations}
+            />
+            {errors.categoryId && <p className="text-sm text-red-500">{errors.categoryId.message}</p>}
+          </div>
+        )}
+
         {(activeTab === "INCOME" || activeTab === "TRANSFER") && (
           <div className="space-y-2">
-            <Label htmlFor="destinationAccountId">{activeTab === "TRANSFER" ? "To Account" : "Deposit to"}</Label>
+            <Label htmlFor="destinationAccountId">{activeTab === "TRANSFER" ? (t.transactionsPage?.destinationAccount || "To Account") : (t.transactionsPage?.depositTo || "Deposit to")}</Label>
             <Select 
-              value={watch("destinationAccountId") || ""}
-              onValueChange={(val) => setValue("destinationAccountId", val || undefined, { shouldValidate: true })} 
+              value={destinationAccountIdVal || ""}
+              onValueChange={(val) => setValue("destinationAccountId", (val || undefined) as any, { shouldValidate: true })} 
             >
               <SelectTrigger id="destinationAccountId">
-                {watch("destinationAccountId") ? (
+                {destinationAccountIdVal ? (
                   <span data-slot="select-value" className="flex flex-1 text-left line-clamp-1">
-                    {accounts.find((a: any) => a.id === watch("destinationAccountId"))?.name}
+                    {accounts.find((a: any) => a.id === destinationAccountIdVal)?.name}
                   </span>
                 ) : (
-                  <SelectValue placeholder="Select account" />
+                  <SelectValue placeholder={t.transactionsPage?.selectAccount || "Select account"} />
                 )}
               </SelectTrigger>
               <SelectContent>
                 {accounts.map((acc) => (
-                  <SelectItem key={acc.id} value={acc.id}>
+                  <SelectItem key={acc.id} value={acc.id} disabled={acc.id === watch("sourceAccountId")}>
                     {acc.name}
                   </SelectItem>
                 ))}
@@ -157,13 +185,13 @@ export function TransactionForm({ accounts, onSuccess }: TransactionFormProps) {
         )}
 
         <div className="space-y-2">
-          <Label htmlFor="description">Note (Optional)</Label>
-          <Input id="description" placeholder="e.g. Lunch, Salary, etc" {...register("description")} />
+          <Label htmlFor="description">{t.transactionsPage?.note || "Note (Optional)"}</Label>
+          <Input id="description" placeholder={t.transactionsPage?.notePlaceholder || "e.g. Lunch, Salary, etc"} {...register("description")} />
           {errors.description && <p className="text-sm text-red-500">{errors.description.message}</p>}
         </div>
 
         <Button type="submit" className="w-full font-bold" size="lg" disabled={isPending}>
-          {isPending ? "Saving..." : "Save Transaction"}
+          {isPending ? (t.common?.saving || "Saving...") : (t.common?.saveTransaction || "Save Transaction")}
         </Button>
       </form>
     </Tabs>

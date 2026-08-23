@@ -5,12 +5,22 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recha
 
 interface SpendingData {
   name: string
+  slug?: string | null
   value: number
 }
 
 const COLORS = ['#f43f5e', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#ec4899', '#14b8a6']
 
-export function SpendingChart({ data }: { data: SpendingData[] }) {
+export function SpendingChart({ data, categoryTranslations = {} }: { data: SpendingData[], categoryTranslations?: Record<string, string> }) {
+  
+  const chartData = data.map(d => {
+    let displayName = d.name
+    if (d.slug && categoryTranslations[d.slug]) {
+      displayName = categoryTranslations[d.slug]
+    }
+    return { ...d, name: displayName }
+  })
+
   const formatRupiah = (value: number) => {
     return new Intl.NumberFormat("id-ID", {
       style: "currency",
@@ -35,7 +45,7 @@ export function SpendingChart({ data }: { data: SpendingData[] }) {
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
-                  data={data}
+                  data={chartData}
                   cx="50%"
                   cy="50%"
                   innerRadius={60}
@@ -43,7 +53,7 @@ export function SpendingChart({ data }: { data: SpendingData[] }) {
                   paddingAngle={5}
                   dataKey="value"
                 >
-                  {data.map((entry, index) => (
+                  {chartData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>

@@ -1,20 +1,19 @@
 import { NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { revalidatePath } from "next/cache"
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/lib/auth"
 
 export async function POST(request: Request) {
   try {
-    // 1. Verifikasi API Key
-    const apiKey = request.headers.get("x-api-key")
-    const validApiKey = process.env.QUICK_CAPTURE_API_KEY || "dev-secret-key"
-    
-    if (!apiKey || apiKey !== validApiKey) {
+    const session = await getServerSession(authOptions)
+    if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
+    const userId = session.user.id
 
-    // 2. Parse Body Request
     const body = await request.json()
-    const { type, amount, description, sourceAccountId, destinationAccountId, categoryId } = body
+    const { type, amount, description, sourceAccountId, destinationAccountId, categoryId, merchantId } = body
 
     if (!type || !amount) {
       return NextResponse.json({ error: "Tipe transaksi dan nominal wajib diisi" }, { status: 400 })
@@ -22,22 +21,31 @@ export async function POST(request: Request) {
 
     const transactionAmount = Number(amount)
 
-    // 3. Simpan Transaksi dengan Prisma Transaction
     const transaction = await db.$transaction(async (tx: any) => {
-      // Buat record transaksi
+      // Validate accounts belong to user
+      if (sourceAccountId) {
+        const acc = await tx.account.findUnique({ where: { id: sourceAccountId } })
+        if (!acc || acc.userId !== userId) throw new Error("Unauthorized account")
+      }
+      if (destinationAccountId) {
+        const acc = await tx.account.findUnique({ where: { id: destinationAccountId } })
+        if (!acc || acc.userId !== userId) throw new Error("Unauthorized account")
+      }
+
       const newTx = await tx.transaction.create({
         data: {
+          userId,
           type,
           amount: transactionAmount,
           date: new Date(),
           description: description || "Quick Capture",
           sourceAccountId,
           destinationAccountId,
-          categoryId
+          categoryId,
+          merchantId
         }
       })
 
-      // Update saldo akun
       if (type === "INCOME" && destinationAccountId) {
         await tx.account.update({
           where: { id: destinationAccountId },
@@ -66,7 +74,10 @@ export async function POST(request: Request) {
     revalidatePath("/transactions")
     
     return NextResponse.json({ success: true, data: transaction })
-  } catch (error) {
+  } catch (error: any) {
+    if (error.message === "Unauthorized account") {
+      return NextResponse.json({ error: "Unauthorized account access" }, { status: 403 })
+    }
     console.error("Quick Capture Error:", error)
     return NextResponse.json({ error: "Gagal memproses transaksi" }, { status: 500 })
   }
