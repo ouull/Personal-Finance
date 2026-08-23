@@ -23,7 +23,7 @@ export function AccountList({ accounts }: { accounts: Account[] }) {
   if (accounts.length === 0) {
     return (
       <div className="text-center p-8 border rounded-lg bg-white/50 border-dashed">
-        <p className="text-muted-foreground text-sm">Belum ada akun. Silakan tambahkan akun pertama Anda.</p>
+        <p className="text-muted-foreground text-sm">No accounts yet. Please add your first account.</p>
       </div>
     )
   }
@@ -39,7 +39,7 @@ export function AccountList({ accounts }: { accounts: Account[] }) {
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
       {accounts.map((account) => (
-        <Card key={account.id} className="hover:shadow-md transition-shadow">
+        <Card key={account.id} className="bg-white/60 backdrop-blur-xl border-white/40 hover:shadow-xl hover:-translate-y-1 hover:bg-white/80 transition-all duration-300">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-base font-medium">
               {account.name}
@@ -51,7 +51,7 @@ export function AccountList({ accounts }: { accounts: Account[] }) {
               {formatRupiah(Number(account.balance))}
             </div>
             <p className="text-sm text-muted-foreground mt-1">
-              Tipe: {account.type}
+              Type: {account.type}
             </p>
           </CardContent>
         </Card>

@@ -20,13 +20,13 @@ export function AccountDialog() {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger render={<Button className="gap-2" size="sm" />}>
         <PlusCircle className="h-4 w-4" />
-        Tambah Akun
+        Add Account
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Tambah Akun Baru</DialogTitle>
+          <DialogTitle>Add New Account</DialogTitle>
           <DialogDescription>
-            Masukkan detail akun baru Anda. Saldo awal bisa diisi jika diperlukan.
+            Enter the details of your new account. Initial balance is optional.
           </DialogDescription>
         </DialogHeader>
         <AccountForm onSuccess={() => setOpen(false)} />

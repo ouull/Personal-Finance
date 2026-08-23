@@ -57,7 +57,7 @@ export async function createTransaction(data: TransactionFormValues) {
     return { success: true }
   } catch (error) {
     console.error("Create transaction error:", error)
-    return { success: false, error: "Gagal mencatat transaksi" }
+    return { success: false, error: "Failed to record transaction" }
   }
 }
 
@@ -88,6 +88,6 @@ export async function getRecentTransactions(limit = 5) {
 
     return { success: true, data: serializedTransactions }
   } catch (error) {
-    return { success: false, error: "Gagal mengambil transaksi" }
+    return { success: false, error: "Failed to fetch transactions" }
   }
 }

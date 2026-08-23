@@ -18,7 +18,7 @@ export async function getAccounts() {
     
     return { success: true, data: serializedAccounts }
   } catch (error) {
-    return { success: false, error: "Gagal mengambil data akun" }
+    return { success: false, error: "Failed to fetch accounts data" }
   }
 }
 
@@ -41,7 +41,7 @@ export async function createAccount(data: AccountFormValues) {
     return { success: true }
   } catch (error) {
     console.error("Create account error:", error)
-    return { success: false, error: "Gagal membuat akun" }
+    return { success: false, error: "Failed to create account" }
   }
 }
 
@@ -57,6 +57,6 @@ export async function deleteAccount(id: string) {
     
     return { success: true }
   } catch (error) {
-    return { success: false, error: "Gagal menghapus akun. Pastikan tidak ada transaksi terkait." }
+    return { success: false, error: "Failed to delete account. Ensure there are no related transactions." }
   }
 }

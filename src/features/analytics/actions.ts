@@ -52,7 +52,7 @@ export async function getCashFlowData() {
     return { success: true, data: Object.values(monthlyData) }
   } catch (error) {
     console.error("Get cash flow error:", error)
-    return { success: false, error: "Gagal mengambil data arus kas" }
+    return { success: false, error: "Failed to fetch cash flow data" }
   }
 }
 
@@ -102,6 +102,6 @@ export async function getComprehensiveAnalytics() {
     }
   } catch (error) {
     console.error("Get analytics error:", error)
-    return { success: false, error: "Gagal mengambil data analisis" }
+    return { success: false, error: "Failed to fetch analytics data" }
   }
 }

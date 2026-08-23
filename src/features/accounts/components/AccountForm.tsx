@@ -40,43 +40,43 @@ export function AccountForm({ onSuccess }: AccountFormProps) {
     setIsPending(false)
 
     if (result.success) {
-      toast.success("Akun berhasil dibuat")
+      toast.success("Account created successfully")
       reset()
       onSuccess?.()
     } else {
-      toast.error(result.error || "Terjadi kesalahan")
+      toast.error(result.error || "An error occurred")
     }
   }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="name">Nama Akun</Label>
-        <Input id="name" placeholder="Contoh: BCA Utama, Gopay" {...register("name")} />
+        <Label htmlFor="name">Account Name</Label>
+        <Input id="name" placeholder="e.g. Main Bank, Cash" {...register("name")} />
         {errors.name && <p className="text-sm text-red-500">{errors.name.message}</p>}
       </div>
       
       <div className="space-y-2">
-        <Label htmlFor="type">Tipe Akun</Label>
+        <Label htmlFor="type">Account Type</Label>
         <Select 
           defaultValue="BANK" 
           onValueChange={(value) => setValue("type", value as any)}
         >
           <SelectTrigger id="type">
-            <SelectValue placeholder="Pilih tipe akun" />
+            <SelectValue placeholder="Select account type" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="BANK">Bank</SelectItem>
             <SelectItem value="EWALLET">E-Wallet</SelectItem>
-            <SelectItem value="CASH">Tunai (Cash)</SelectItem>
-            <SelectItem value="INVESTMENT">Investasi</SelectItem>
+            <SelectItem value="CASH">Cash</SelectItem>
+            <SelectItem value="INVESTMENT">Investment</SelectItem>
           </SelectContent>
         </Select>
         {errors.type && <p className="text-sm text-red-500">{errors.type.message}</p>}
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="balance">Saldo Awal (Rp)</Label>
+        <Label htmlFor="balance">Initial Balance (Rp)</Label>
         <Input 
           id="balance" 
           type="text" 
@@ -96,7 +96,7 @@ export function AccountForm({ onSuccess }: AccountFormProps) {
       </div>
       
       <Button type="submit" className="w-full" disabled={isPending}>
-        {isPending ? "Menyimpan..." : "Simpan Akun"}
+        {isPending ? "Saving..." : "Save Account"}
       </Button>
     </form>
   )

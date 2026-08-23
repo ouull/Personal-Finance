@@ -7,9 +7,10 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogDescription,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { PlusCircle } from "lucide-react"
+import { Plus } from "lucide-react"
 import { TransactionForm } from "./TransactionForm"
 
 interface Account {
@@ -27,17 +28,19 @@ export function TransactionDialog({ accounts }: TransactionDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button className="gap-2 shadow-lg hover:shadow-xl transition-shadow bg-slate-900 text-white rounded-full px-6" />}>
-        <PlusCircle className="h-5 w-5" />
-        Catat Transaksi
+      <DialogTrigger render={<Button className="bg-primary hover:bg-primary/90" />}>
+        <Plus className="mr-2 h-4 w-4" /> Record Transaction
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Catat Transaksi Baru</DialogTitle>
+          <DialogTitle>Record New Transaction</DialogTitle>
+          <DialogDescription>
+            Enter your transaction details below.
+          </DialogDescription>
         </DialogHeader>
         {accounts.length === 0 ? (
-          <div className="py-6 text-center text-muted-foreground text-sm">
-            Anda belum memiliki akun. Silakan tambahkan akun terlebih dahulu sebelum mencatat transaksi.
+          <div className="text-center p-6 text-sm text-muted-foreground">
+            You don't have any accounts yet. Please add an account first before recording a transaction.
           </div>
         ) : (
           <TransactionForm accounts={accounts} onSuccess={() => setOpen(false)} />

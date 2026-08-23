@@ -41,12 +41,12 @@ export function TransactionList({ transactions, accounts = [] }: { transactions:
     if (filteredTransactions.length === 0) return
     
     // Header
-    let csv = "Tanggal;Tipe;Nominal;Keterangan;Dari Akun;Ke Akun\n"
+    let csv = "Date;Type;Amount;Description;From Account;To Account\n"
     
     // Rows
     filteredTransactions.forEach((t: any) => {
       const dateStr = format(new Date(t.date), "yyyy-MM-dd")
-      const typeStr = t.type === "INCOME" ? "Pemasukan" : t.type === "EXPENSE" ? "Pengeluaran" : "Transfer"
+      const typeStr = t.type === "INCOME" ? "Income" : t.type === "EXPENSE" ? "Expense" : "Transfer"
       const amountStr = t.amount.toString()
       const descStr = `"${(t.description || "").replace(/"/g, '""')}"`
       const sourceStr = `"${t.sourceAccount?.name || ""}"`
@@ -60,7 +60,7 @@ export function TransactionList({ transactions, accounts = [] }: { transactions:
     const url = URL.createObjectURL(blob)
     const link = document.createElement("a")
     link.href = url
-    link.setAttribute("download", `transaksi_${format(new Date(), "yyyyMMdd_HHmmss")}.csv`)
+    link.setAttribute("download", `transactions_${format(new Date(), "yyyyMMdd_HHmmss")}.csv`)
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
@@ -84,9 +84,9 @@ export function TransactionList({ transactions, accounts = [] }: { transactions:
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
           >
-            <option value="ALL">Semua Tipe</option>
-            <option value="INCOME">Pemasukan</option>
-            <option value="EXPENSE">Pengeluaran</option>
+            <option value="ALL">All Types</option>
+            <option value="INCOME">Income</option>
+            <option value="EXPENSE">Expense</option>
             <option value="TRANSFER">Transfer</option>
           </select>
 
@@ -95,7 +95,7 @@ export function TransactionList({ transactions, accounts = [] }: { transactions:
             value={filterAccount}
             onChange={(e) => setFilterAccount(e.target.value)}
           >
-            <option value="ALL">Semua Akun</option>
+            <option value="ALL">All Accounts</option>
             {accounts.map(acc => (
               <option key={acc.id} value={acc.id}>{acc.name}</option>
             ))}
@@ -109,7 +109,7 @@ export function TransactionList({ transactions, accounts = [] }: { transactions:
 
       {filteredTransactions.length === 0 ? (
         <div className="text-center p-8 border rounded-xl bg-slate-50/50 border-dashed">
-          <p className="text-muted-foreground text-sm">Belum ada transaksi yang sesuai filter.</p>
+          <p className="text-muted-foreground text-sm">No transactions match the filter.</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -118,7 +118,7 @@ export function TransactionList({ transactions, accounts = [] }: { transactions:
             const isTransfer = t.type === "TRANSFER"
             
             return (
-              <Card key={t.id} className="p-4 flex items-center justify-between hover:bg-slate-50/50 transition-colors border-slate-100 shadow-sm">
+              <Card key={t.id} className="p-4 flex items-center justify-between bg-white/60 backdrop-blur-md border-white/50 hover:bg-white/90 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 shadow-sm">
                 <div className="flex items-center gap-4">
                   <div className={`p-2 rounded-full ${
                     isIncome ? "bg-emerald-100 text-emerald-600" 
@@ -132,7 +132,7 @@ export function TransactionList({ transactions, accounts = [] }: { transactions:
                   
                   <div>
                     <p className="font-semibold text-slate-900 text-base">
-                      {t.description || (isIncome ? "Pemasukan" : isTransfer ? "Transfer" : "Pengeluaran")}
+                      {t.description || (isIncome ? "Income" : isTransfer ? "Transfer" : "Expense")}
                     </p>
                     <div className="flex items-center gap-1 text-sm text-muted-foreground mt-0.5">
                       <span>{format(new Date(t.date), "dd MMM yyyy", { locale: id })}</span>

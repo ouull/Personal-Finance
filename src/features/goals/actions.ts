@@ -27,7 +27,7 @@ export async function getGoals() {
 
     return { success: true, data: serializedGoals }
   } catch (error) {
-    return { success: false, error: "Gagal mengambil data tujuan finansial" }
+    return { success: false, error: "Failed to fetch financial goals data" }
   }
 }
 
@@ -48,6 +48,6 @@ export async function createGoal(data: GoalFormValues) {
     
     return { success: true }
   } catch (error) {
-    return { success: false, error: "Gagal membuat tujuan finansial" }
+    return { success: false, error: "Failed to create financial goal" }
   }
 }

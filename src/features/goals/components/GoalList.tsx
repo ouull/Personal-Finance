@@ -14,7 +14,7 @@ export function GoalList({ goals }: { goals: Goal[] }) {
   if (goals.length === 0) {
     return (
       <div className="text-center p-6 border rounded-xl bg-slate-50/50 border-dashed">
-        <p className="text-muted-foreground text-sm">Belum ada tujuan finansial.</p>
+        <p className="text-muted-foreground text-sm">No financial goals yet.</p>
       </div>
     )
   }
@@ -35,7 +35,7 @@ export function GoalList({ goals }: { goals: Goal[] }) {
         const percentage = Math.min(100, Math.round((current / target) * 100))
 
         return (
-          <Card key={goal.id} className="shadow-sm border-slate-100">
+          <Card key={goal.id} className="bg-white/60 backdrop-blur-md border-white/50 hover:bg-white/90 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 shadow-sm">
             <CardHeader className="pb-2 flex flex-row justify-between items-center space-y-0">
               <CardTitle className="text-sm font-semibold flex items-center gap-2 text-slate-800">
                 <Target className="w-4 h-4 text-primary" />
@@ -51,7 +51,7 @@ export function GoalList({ goals }: { goals: Goal[] }) {
                 ></div>
               </div>
               <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                <span>Terkumpul: {formatRupiah(current)}</span>
+                <span>Saved: {formatRupiah(current)}</span>
                 <span>Target: {formatRupiah(target)}</span>
               </div>
             </CardContent>

@@ -22,13 +22,13 @@ export function SpendingChart({ data }: { data: SpendingData[] }) {
   return (
     <Card className="shadow-sm">
       <CardHeader>
-        <CardTitle className="text-lg">Kategori Pengeluaran</CardTitle>
-        <CardDescription>Bulan ini</CardDescription>
+        <CardTitle className="text-lg">Spending Categories</CardTitle>
+        <CardDescription>This month</CardDescription>
       </CardHeader>
       <CardContent>
         {data.length === 0 ? (
           <div className="h-[250px] flex items-center justify-center text-sm text-muted-foreground border-dashed border rounded-xl">
-            Belum ada pengeluaran
+            No expenses yet
           </div>
         ) : (
           <div className="h-[250px] w-full mt-2">
@@ -48,7 +48,7 @@ export function SpendingChart({ data }: { data: SpendingData[] }) {
                   ))}
                 </Pie>
                 <Tooltip 
-                  formatter={(value: any) => [formatRupiah(value as number), "Pengeluaran"]}
+                  formatter={(value: any) => [formatRupiah(value as number), "Expense"]}
                   contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                 />
                 <Legend verticalAlign="bottom" height={36} iconType="circle" />

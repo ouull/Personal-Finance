@@ -22,13 +22,13 @@ export function AccountDistributionChart({ data }: { data: AccountData[] }) {
   return (
     <Card className="shadow-sm">
       <CardHeader>
-        <CardTitle className="text-lg">Distribusi Akun</CardTitle>
-        <CardDescription>Persentase saldo Anda</CardDescription>
+        <CardTitle className="text-lg">Account Balance Distribution</CardTitle>
+        <CardDescription>Percentage of your balance</CardDescription>
       </CardHeader>
       <CardContent>
         {data.length === 0 ? (
           <div className="h-[250px] flex items-center justify-center text-sm text-muted-foreground border-dashed border rounded-xl">
-            Belum ada saldo akun
+            No account balances yet
           </div>
         ) : (
           <div className="h-[250px] w-full mt-2">

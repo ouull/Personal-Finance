@@ -32,8 +32,8 @@ export function CashFlowChart({ data }: CashFlowChartProps) {
   return (
     <Card className="shadow-sm">
       <CardHeader>
-        <CardTitle>Arus Kas (6 Bulan Terakhir)</CardTitle>
-        <CardDescription>Perbandingan total pemasukan dan pengeluaran Anda.</CardDescription>
+        <CardTitle className="text-lg">Cash Flow</CardTitle>
+        <CardDescription>Comparison of your total income and expenses.</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="h-[300px] w-full mt-4">
@@ -60,17 +60,15 @@ export function CashFlowChart({ data }: CashFlowChartProps) {
               />
               <Bar 
                 dataKey="income" 
-                name="Pemasukan"
-                fill="#10b981" 
+                fill="var(--color-income)" 
                 radius={[4, 4, 0, 0]} 
-                maxBarSize={40}
+                name="Income"
               />
               <Bar 
                 dataKey="expense" 
-                name="Pengeluaran"
-                fill="#f43f5e" 
+                fill="var(--color-expense)" 
                 radius={[4, 4, 0, 0]} 
-                maxBarSize={40}
+                name="Expense"
               />
             </BarChart>
           </ResponsiveContainer>

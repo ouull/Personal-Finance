@@ -57,7 +57,7 @@ export function TransactionForm({ accounts, onSuccess }: TransactionFormProps) {
     setIsPending(false)
 
     if (result.success) {
-      toast.success("Transaksi berhasil dicatat")
+      toast.success("Transaction recorded successfully")
       reset({
         type: activeTab,
         amount: 0,
@@ -66,21 +66,21 @@ export function TransactionForm({ accounts, onSuccess }: TransactionFormProps) {
       })
       onSuccess?.()
     } else {
-      toast.error(result.error || "Terjadi kesalahan")
+      toast.error(result.error || "An error occurred")
     }
   }
 
   return (
     <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
       <TabsList className="grid w-full grid-cols-3 mb-6">
-        <TabsTrigger value="EXPENSE">Pengeluaran</TabsTrigger>
-        <TabsTrigger value="INCOME">Pemasukan</TabsTrigger>
+        <TabsTrigger value="EXPENSE">Expense</TabsTrigger>
+        <TabsTrigger value="INCOME">Income</TabsTrigger>
         <TabsTrigger value="TRANSFER">Transfer</TabsTrigger>
       </TabsList>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="amount">Nominal (Rp)</Label>
+          <Label htmlFor="amount">Amount (Rp)</Label>
           <Input 
             id="amount" 
             type="text" 
@@ -102,7 +102,7 @@ export function TransactionForm({ accounts, onSuccess }: TransactionFormProps) {
 
         {(activeTab === "EXPENSE" || activeTab === "TRANSFER") && (
           <div className="space-y-2">
-            <Label htmlFor="sourceAccountId">{activeTab === "TRANSFER" ? "Dari Akun" : "Bayar Dari"}</Label>
+            <Label htmlFor="sourceAccountId">{activeTab === "TRANSFER" ? "From Account" : "Pay from"}</Label>
             <Select 
               value={watch("sourceAccountId") || ""}
               onValueChange={(val) => setValue("sourceAccountId", val || undefined, { shouldValidate: true })} 
@@ -113,7 +113,7 @@ export function TransactionForm({ accounts, onSuccess }: TransactionFormProps) {
                     {accounts.find((a: any) => a.id === watch("sourceAccountId"))?.name}
                   </span>
                 ) : (
-                  <SelectValue placeholder="Pilih akun" />
+                  <SelectValue placeholder="Select account" />
                 )}
               </SelectTrigger>
               <SelectContent>
@@ -130,7 +130,7 @@ export function TransactionForm({ accounts, onSuccess }: TransactionFormProps) {
 
         {(activeTab === "INCOME" || activeTab === "TRANSFER") && (
           <div className="space-y-2">
-            <Label htmlFor="destinationAccountId">{activeTab === "TRANSFER" ? "Ke Akun" : "Masuk Ke"}</Label>
+            <Label htmlFor="destinationAccountId">{activeTab === "TRANSFER" ? "To Account" : "Deposit to"}</Label>
             <Select 
               value={watch("destinationAccountId") || ""}
               onValueChange={(val) => setValue("destinationAccountId", val || undefined, { shouldValidate: true })} 
@@ -141,7 +141,7 @@ export function TransactionForm({ accounts, onSuccess }: TransactionFormProps) {
                     {accounts.find((a: any) => a.id === watch("destinationAccountId"))?.name}
                   </span>
                 ) : (
-                  <SelectValue placeholder="Pilih akun" />
+                  <SelectValue placeholder="Select account" />
                 )}
               </SelectTrigger>
               <SelectContent>
@@ -157,13 +157,13 @@ export function TransactionForm({ accounts, onSuccess }: TransactionFormProps) {
         )}
 
         <div className="space-y-2">
-          <Label htmlFor="description">Catatan (Opsional)</Label>
-          <Input id="description" placeholder="Misal: Makan siang, Gaji, dll" {...register("description")} />
+          <Label htmlFor="description">Note (Optional)</Label>
+          <Input id="description" placeholder="e.g. Lunch, Salary, etc" {...register("description")} />
           {errors.description && <p className="text-sm text-red-500">{errors.description.message}</p>}
         </div>
 
         <Button type="submit" className="w-full font-bold" size="lg" disabled={isPending}>
-          {isPending ? "Menyimpan..." : "Simpan Transaksi"}
+          {isPending ? "Saving..." : "Save Transaction"}
         </Button>
       </form>
     </Tabs>
