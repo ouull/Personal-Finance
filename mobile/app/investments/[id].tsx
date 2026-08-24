@@ -100,11 +100,11 @@ export default function InvestmentDetailScreen() {
           
           <View className="flex-row w-full justify-around border-t border-gray-100 pt-4">
             <View className="items-center">
-              <Text className="text-gray-500 text-xs mb-1">Total Investasi</Text>
+              <Text className="text-gray-500 text-xs mb-1">{t('totalInvestment')}</Text>
               <AmountText amount={investment.totalInvested} className="text-gray-900 font-semibold" showSign={false} />
             </View>
             <View className="items-center border-l border-r border-gray-100 px-4">
-              <Text className="text-gray-500 text-xs mb-1">Unrealized</Text>
+              <Text className="text-gray-500 text-xs mb-1">{t('unrealizedGain')}</Text>
               <AmountText amount={investment.unrealizedGain} type={investment.unrealizedGain >= 0 ? 'INCOME' : 'EXPENSE'} className="font-semibold" />
             </View>
             <View className="items-center">
@@ -154,7 +154,7 @@ export default function InvestmentDetailScreen() {
               </View>
             ))
           ) : (
-            <Text className="text-gray-500 italic p-4">Belum ada transaksi.</Text>
+            <Text className="text-gray-500 italic p-4">{t('noTransactionsYet')}</Text>
           )}
         </Card>
         

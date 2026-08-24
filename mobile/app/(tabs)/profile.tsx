@@ -67,7 +67,7 @@ export default function ProfileScreen() {
   return (
     <Screen safeArea={false}>
       <View className="px-4 pt-12 pb-4 bg-white border-b border-gray-100">
-        <Text className="text-2xl font-bold text-gray-900">Profile</Text>
+        <Text className="text-2xl font-bold text-gray-900">{t('profile')}</Text>
       </View>
 
       <ScrollView className="flex-1 bg-gray-50" showsVerticalScrollIndicator={false}>
@@ -85,7 +85,7 @@ export default function ProfileScreen() {
             </View>
           </Card>
 
-          <Text className="text-sm font-semibold text-gray-500 mb-2 uppercase">Menu Keuangan</Text>
+          <Text className="text-sm font-semibold text-gray-500 mb-2 uppercase">{t('financialMenu')}</Text>
           <Card className="mb-6">
             <MenuItem 
               icon={Wallet} 
@@ -109,7 +109,7 @@ export default function ProfileScreen() {
             />
           </Card>
 
-          <Text className="text-sm font-semibold text-gray-500 mb-2 uppercase">Pengaturan</Text>
+          <Text className="text-sm font-semibold text-gray-500 mb-2 uppercase">{t('settings')}</Text>
           <Card className="mb-6">
             <MenuItem 
               icon={Shield} 
@@ -151,14 +151,14 @@ export default function ProfileScreen() {
             className="py-4 border-b border-gray-100 flex-row justify-between items-center"
             onPress={() => { setLanguage('id'); setIsLangSheetOpen(false); }}
           >
-            <Text className="text-base text-gray-900">Bahasa Indonesia</Text>
+            <Text className="text-base text-gray-900">{t('indonesian')}</Text>
             {language === 'id' && <Text className="text-blue-600 font-bold">✓</Text>}
           </TouchableOpacity>
           <TouchableOpacity 
             className="py-4 border-b border-gray-100 flex-row justify-between items-center"
             onPress={() => { setLanguage('en'); setIsLangSheetOpen(false); }}
           >
-            <Text className="text-base text-gray-900">English</Text>
+            <Text className="text-base text-gray-900">{t('english')}</Text>
             {language === 'en' && <Text className="text-blue-600 font-bold">✓</Text>}
           </TouchableOpacity>
         </View>

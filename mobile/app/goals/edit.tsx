@@ -95,13 +95,13 @@ export default function EditGoalScreen() {
         <TouchableOpacity onPress={() => router.back()} className="mr-4">
           <ChevronLeft size={28} color="#111827" />
         </TouchableOpacity>
-        <Text className="text-xl font-bold text-gray-900">Edit Tujuan</Text>
+        <Text className="text-xl font-bold text-gray-900">{t('editGoal')}</Text>
       </View>
 
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
         <ScrollView className="p-6" keyboardShouldPersistTaps="handled">
           <Input 
-            label="Nama Tujuan"
+            label={t('goalName')}
             placeholder="Misal: Beli Mobil"
             value={name}
             onChangeText={setName}
@@ -117,7 +117,7 @@ export default function EditGoalScreen() {
           />
 
           <Input 
-            label="Terkumpul Saat Ini"
+            label={t('currentAmount')}
             placeholder="0"
             keyboardType="numeric"
             value={currentAmount}
@@ -125,7 +125,7 @@ export default function EditGoalScreen() {
           />
 
           <Input 
-            label="Tanggal Target (Opsional, YYYY-MM-DD)"
+            label={t('targetDateOptional')}
             placeholder="2027-12-31"
             value={targetDate}
             onChangeText={setTargetDate}

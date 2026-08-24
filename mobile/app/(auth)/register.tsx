@@ -2,8 +2,10 @@ import { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { Link, useRouter } from 'expo-router';
 import { apiClient } from '../../lib/api/client';
+import { useTranslation } from '../../lib/i18n';
 
 export default function RegisterScreen() {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
@@ -42,10 +44,10 @@ export default function RegisterScreen() {
 
   return (
     <View className="flex-1 justify-center px-6 bg-white">
-      <Text className="text-3xl font-bold mb-8 text-center">Daftar</Text>
+      <Text className="text-3xl font-bold mb-8 text-center">{t('register')}</Text>
       
       <View className="mb-4">
-        <Text className="text-sm font-medium mb-1">Nama Lengkap</Text>
+        <Text className="text-sm font-medium mb-1">{t('fullName')}</Text>
         <TextInput
           className="border border-gray-300 rounded-lg px-4 py-3 bg-gray-50"
           value={name}
@@ -54,7 +56,7 @@ export default function RegisterScreen() {
       </View>
 
       <View className="mb-4">
-        <Text className="text-sm font-medium mb-1">Email</Text>
+        <Text className="text-sm font-medium mb-1">{t('email')}</Text>
         <TextInput
           className="border border-gray-300 rounded-lg px-4 py-3 bg-gray-50"
           value={email}
@@ -65,7 +67,7 @@ export default function RegisterScreen() {
       </View>
 
       <View className="mb-8">
-        <Text className="text-sm font-medium mb-1">Password</Text>
+        <Text className="text-sm font-medium mb-1">{t('password')}</Text>
         <TextInput
           className="border border-gray-300 rounded-lg px-4 py-3 bg-gray-50"
           value={password}
@@ -82,14 +84,14 @@ export default function RegisterScreen() {
         {isLoading ? (
           <ActivityIndicator color="white" />
         ) : (
-          <Text className="text-white font-semibold text-lg">Daftar</Text>
+          <Text className="text-white font-semibold text-lg">{t('register')}</Text>
         )}
       </TouchableOpacity>
 
       <View className="flex-row justify-center">
-        <Text className="text-gray-600">Sudah punya akun? </Text>
+        <Text className="text-gray-600">{t('alreadyHaveAccount')}</Text>
         <Link href="/(auth)/login" className="text-blue-600 font-medium">
-          Masuk
+          {t('login')}
         </Link>
       </View>
     </View>

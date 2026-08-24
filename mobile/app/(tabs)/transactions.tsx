@@ -148,9 +148,9 @@ export default function TransactionsScreen() {
 
       <BottomSheet visible={isFilterSheetOpen} onClose={() => setIsFilterSheetOpen(false)} height="85%">
         <View className="flex-1 p-6">
-          <Text className="text-2xl font-bold mb-6">Filter Transaksi</Text>
+          <Text className="text-2xl font-bold mb-6">{t('filterTransactions')}</Text>
           
-          <Text className="font-semibold text-gray-900 mb-3">Tipe</Text>
+          <Text className="font-semibold text-gray-900 mb-3">{t('type')}</Text>
           <View className="flex-row flex-wrap gap-2 mb-6">
             {['', 'EXPENSE', 'INCOME', 'TRANSFER'].map((tType) => (
               <TouchableOpacity

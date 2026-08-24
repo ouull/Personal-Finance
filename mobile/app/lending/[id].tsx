@@ -134,7 +134,7 @@ export default function LendingDetailScreen() {
           />
         )}
 
-        <SectionHeader title="Riwayat Pelunasan" />
+        <SectionHeader title={t('repayment')} />
         <Card className="mb-8 p-0">
           {loan.repayments?.length > 0 ? (
             loan.repayments.map((rp: any, index: number) => (
@@ -146,7 +146,7 @@ export default function LendingDetailScreen() {
               </View>
             ))
           ) : (
-            <Text className="text-gray-500 italic p-4">Belum ada riwayat pelunasan.</Text>
+            <Text className="text-gray-500 italic p-4">{t('noRepaymentHistory')}</Text>
           )}
         </Card>
         

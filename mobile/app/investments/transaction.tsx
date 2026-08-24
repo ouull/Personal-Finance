@@ -118,7 +118,7 @@ export default function InvestmentTransactionScreen() {
           )}
 
           <View className="mb-4">
-            <Text className="text-sm font-medium text-gray-700 mb-1">Akun Sumber / Tujuan (Opsional)</Text>
+            <Text className="text-sm font-medium text-gray-700 mb-1">{t('sourceDestAccountOptional')}</Text>
             <TouchableOpacity 
               className="border border-gray-300 rounded-xl p-4 bg-gray-50 flex-row justify-between items-center"
               onPress={() => setIsAccountSheetOpen(true)}
@@ -151,7 +151,7 @@ export default function InvestmentTransactionScreen() {
                 setIsAccountSheetOpen(false);
               }}
             >
-              <Text className="text-base text-gray-500">Tidak ada</Text>
+              <Text className="text-base text-gray-500">{t('none')}</Text>
             </TouchableOpacity>
             {accounts.map((a: any) => (
               <TouchableOpacity

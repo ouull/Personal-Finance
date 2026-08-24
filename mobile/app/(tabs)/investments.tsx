@@ -60,7 +60,7 @@ export default function InvestmentsScreen() {
           
           <View className="flex-row justify-between pt-4 border-t border-gray-800">
             <View>
-              <Text className="text-gray-500 text-xs mb-1">Total Investasi</Text>
+              <Text className="text-gray-500 text-xs mb-1">{t('totalInvestment')}</Text>
               <AmountText amount={summary.totalInvested} className="text-gray-300 font-semibold" showSign={false} />
             </View>
             <View className="items-end">
@@ -75,7 +75,7 @@ export default function InvestmentsScreen() {
         </Card>
 
         {investments.length > 0 && (
-          <Text className="text-sm font-semibold text-gray-500 mb-3 ml-1 uppercase">Portfolio</Text>
+          <Text className="text-sm font-semibold text-gray-500 mb-3 ml-1 uppercase">{t('portfolio')}</Text>
         )}
 
         {investments.map((inv: any) => {

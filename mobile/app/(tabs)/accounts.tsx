@@ -129,7 +129,7 @@ export default function AccountsScreen() {
         />
 
         <Card className="mb-8 mt-4 bg-gray-900 border-0">
-          <Text className="text-gray-400 font-medium mb-1">Total Saldo</Text>
+          <Text className="text-gray-400 font-medium mb-1">{t('totalBalance')}</Text>
           <AmountText amount={totalBalance} className="text-white text-3xl font-bold" showSign={false} />
         </Card>
 

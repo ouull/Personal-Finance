@@ -84,7 +84,7 @@ export default function AddRecurringScreen() {
         <TouchableOpacity onPress={() => router.back()} className="mr-4">
           <ChevronLeft size={28} color="#111827" />
         </TouchableOpacity>
-        <Text className="text-xl font-bold text-gray-900">Tambah Rutin</Text>
+        <Text className="text-xl font-bold text-gray-900">{t('addRecurring')}</Text>
       </View>
 
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
@@ -106,12 +106,12 @@ export default function AddRecurringScreen() {
           />
 
           <View className="mb-4">
-            <Text className="text-sm font-medium text-gray-700 mb-1">Tipe</Text>
+            <Text className="text-sm font-medium text-gray-700 mb-1">{t('type')}</Text>
             <TouchableOpacity 
               className="border border-gray-300 rounded-xl p-4 bg-gray-50 flex-row justify-between items-center"
               onPress={() => setIsTypeSheetOpen(true)}
             >
-              <Text className="text-gray-900 text-base">{type === 'EXPENSE' ? 'Pengeluaran' : 'Pemasukan'}</Text>
+              <Text className="text-gray-900 text-base">{type === 'EXPENSE' ? t('expense') : t('income')}</Text>
             </TouchableOpacity>
           </View>
 
@@ -163,25 +163,25 @@ export default function AddRecurringScreen() {
 
       <BottomSheet visible={isTypeSheetOpen} onClose={() => setIsTypeSheetOpen(false)} height={220}>
         <View className="p-4">
-          <Text className="text-lg font-bold mb-4">Pilih Tipe</Text>
+          <Text className="text-lg font-bold mb-4">{t('selectType')}</Text>
           <TouchableOpacity 
             className="py-4 border-b border-gray-100"
             onPress={() => { setType('EXPENSE'); setCategoryId(''); setIsTypeSheetOpen(false); }}
           >
-            <Text className="text-base text-gray-900">Pengeluaran</Text>
+            <Text className="text-base text-gray-900">{t('expense')}</Text>
           </TouchableOpacity>
           <TouchableOpacity 
             className="py-4 border-b border-gray-100"
             onPress={() => { setType('INCOME'); setCategoryId(''); setIsTypeSheetOpen(false); }}
           >
-            <Text className="text-base text-gray-900">Pemasukan</Text>
+            <Text className="text-base text-gray-900">{t('income')}</Text>
           </TouchableOpacity>
         </View>
       </BottomSheet>
 
       <BottomSheet visible={isFreqSheetOpen} onClose={() => setIsFreqSheetOpen(false)} height={320}>
         <View className="p-4">
-          <Text className="text-lg font-bold mb-4">Pilih Frekuensi</Text>
+          <Text className="text-lg font-bold mb-4">{t('selectFrequency')}</Text>
           {['DAILY', 'WEEKLY', 'MONTHLY', 'YEARLY'].map((freq) => (
             <TouchableOpacity 
               key={freq}
@@ -216,7 +216,7 @@ export default function AddRecurringScreen() {
       
       <BottomSheet visible={isCategorySheetOpen} onClose={() => setIsCategorySheetOpen(false)}>
         <View className="p-4">
-          <Text className="text-lg font-bold mb-4">Pilih Kategori</Text>
+          <Text className="text-lg font-bold mb-4">{t('selectCategory')}</Text>
           <ScrollView style={{ maxHeight: 400 }}>
             {categories.map((c: any) => (
               <TouchableOpacity

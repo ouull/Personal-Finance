@@ -81,7 +81,7 @@ export default function AddCashScreen() {
         <ScrollView className="p-6" keyboardShouldPersistTaps="handled">
           
           <View className="mb-4">
-            <Text className="text-sm font-medium text-gray-700 mb-1">Tipe Transaksi</Text>
+            <Text className="text-sm font-medium text-gray-700 mb-1">{t('transactionType')}</Text>
             <TouchableOpacity 
               className="border border-gray-300 rounded-xl p-4 bg-gray-50 flex-row justify-between items-center"
               onPress={() => setIsTypeSheetOpen(true)}
@@ -126,7 +126,7 @@ export default function AddCashScreen() {
 
       <BottomSheet visible={isTypeSheetOpen} onClose={() => setIsTypeSheetOpen(false)} height={220}>
         <View className="p-4">
-          <Text className="text-lg font-bold mb-4">Pilih Tipe</Text>
+          <Text className="text-lg font-bold mb-4">{t('selectType')}</Text>
           <TouchableOpacity 
             className="py-4 border-b border-gray-100"
             onPress={() => { setType('INCOME'); setIsTypeSheetOpen(false); }}

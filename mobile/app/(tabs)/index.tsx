@@ -123,7 +123,7 @@ export default function DashboardScreen() {
         {/* Upcoming Payments Placeholder */}
         <SectionHeader title={t('upcomingPayments')} />
         <Card className="mb-8 items-center py-6">
-          <Text className="text-gray-400 italic">Belum ada tagihan mendatang.</Text>
+          <Text className="text-gray-400 italic">{t('noUpcomingPayments')}</Text>
         </Card>
         
         <View className="h-10" />

@@ -70,7 +70,7 @@ export default function AddLendingScreen() {
         <TouchableOpacity onPress={() => router.back()} className="mr-4">
           <ChevronLeft size={28} color="#111827" />
         </TouchableOpacity>
-        <Text className="text-xl font-bold text-gray-900">Tambah Pinjaman</Text>
+        <Text className="text-xl font-bold text-gray-900">{t('addLoan')}</Text>
       </View>
 
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
@@ -92,7 +92,7 @@ export default function AddLendingScreen() {
           />
 
           <View className="mb-4">
-            <Text className="text-sm font-medium text-gray-700 mb-1">Tipe Pinjaman</Text>
+            <Text className="text-sm font-medium text-gray-700 mb-1">{t('loanType')}</Text>
             <TouchableOpacity 
               className="border border-gray-300 rounded-xl p-4 bg-gray-50 flex-row justify-between items-center"
               onPress={() => setIsTypeSheetOpen(true)}
@@ -126,7 +126,7 @@ export default function AddLendingScreen() {
 
       <BottomSheet visible={isTypeSheetOpen} onClose={() => setIsTypeSheetOpen(false)} height={220}>
         <View className="p-4">
-          <Text className="text-lg font-bold mb-4">Pilih Tipe</Text>
+          <Text className="text-lg font-bold mb-4">{t('selectLoanType')}</Text>
           <TouchableOpacity 
             className="py-4 border-b border-gray-100"
             onPress={() => { setType('LOAN_GIVEN'); setIsTypeSheetOpen(false); }}

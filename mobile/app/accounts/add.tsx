@@ -73,7 +73,7 @@ export default function AddAccountScreen() {
               className="border border-gray-300 rounded-xl p-4 bg-gray-50 flex-row justify-between items-center"
               onPress={() => setIsTypeSheetOpen(true)}
             >
-              <Text className="text-gray-900 text-base">{type === 'BANK' ? 'Bank' : 'E-Wallet'}</Text>
+              <Text className="text-gray-900 text-base">{type === 'BANK' ? t('bank') : t('eWallet')}</Text>
             </TouchableOpacity>
           </View>
 
@@ -103,13 +103,13 @@ export default function AddAccountScreen() {
             className="py-4 border-b border-gray-100"
             onPress={() => { setType('BANK'); setIsTypeSheetOpen(false); }}
           >
-            <Text className="text-base text-gray-900">Bank</Text>
+            <Text className="text-base text-gray-900">{t('bank')}</Text>
           </TouchableOpacity>
           <TouchableOpacity 
             className="py-4 border-b border-gray-100"
             onPress={() => { setType('EWALLET'); setIsTypeSheetOpen(false); }}
           >
-            <Text className="text-base text-gray-900">E-Wallet</Text>
+            <Text className="text-base text-gray-900">{t('eWallet')}</Text>
           </TouchableOpacity>
         </View>
       </BottomSheet>

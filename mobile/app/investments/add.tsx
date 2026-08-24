@@ -50,7 +50,7 @@ export default function AddInvestmentScreen() {
         <TouchableOpacity onPress={() => router.back()} className="mr-4">
           <ChevronLeft size={28} color="#111827" />
         </TouchableOpacity>
-        <Text className="text-xl font-bold text-gray-900">Tambah Investasi</Text>
+        <Text className="text-xl font-bold text-gray-900">{t('addInvestment')}</Text>
       </View>
 
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">

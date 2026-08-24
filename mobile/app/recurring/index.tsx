@@ -182,7 +182,7 @@ export default function RecurringScreen() {
               router.push(`/recurring/edit?id=${selectedRecurring?.id}`);
             }}
           >
-            <Text className="text-base text-gray-900 ml-2">Edit</Text>
+            <Text className="text-base text-gray-900 ml-2">{t('edit')}</Text>
           </TouchableOpacity>
           
           <TouchableOpacity 
@@ -190,7 +190,7 @@ export default function RecurringScreen() {
             onPress={confirmDelete}
           >
             <Trash2 color="#ef4444" size={20} />
-            <Text className="text-base text-red-500 ml-2">Hapus</Text>
+            <Text className="text-base text-red-500 ml-2">{t('delete')}</Text>
           </TouchableOpacity>
         </View>
       </BottomSheet>

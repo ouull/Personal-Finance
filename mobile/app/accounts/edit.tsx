@@ -70,8 +70,8 @@ export default function EditAccountScreen() {
   if (data.type === 'CASH') {
     return (
       <View className="flex-1 bg-white p-6 justify-center items-center">
-        <Text className="text-gray-500 mb-4 text-center">Akun Cash tidak dapat diubah.</Text>
-        <Button label="Kembali" onPress={() => router.back()} />
+        <Text className="text-gray-500 mb-4 text-center">{t('cashAccountCannotBeEdited')}</Text>
+        <Button label={t('cancel')} onPress={() => router.back()} />
       </View>
     );
   }
@@ -97,9 +97,9 @@ export default function EditAccountScreen() {
           <View className="mb-4">
             <Text className="text-sm font-medium text-gray-700 mb-1">{t('accountType')}</Text>
             <View className="border border-gray-200 rounded-xl p-4 bg-gray-100">
-              <Text className="text-gray-500 text-base">{data.type === 'BANK' ? 'Bank' : 'E-Wallet'}</Text>
+              <Text className="text-gray-500 text-base">{data.type === 'BANK' ? t('bank') : t('eWallet')}</Text>
             </View>
-            <Text className="text-xs text-gray-500 mt-1">Tipe akun tidak dapat diubah.</Text>
+            <Text className="text-xs text-gray-500 mt-1">{t('accountTypeCannotBeEdited')}</Text>
           </View>
 
           <View className="mt-8">

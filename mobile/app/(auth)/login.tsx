@@ -4,8 +4,10 @@ import { Link } from 'expo-router';
 import { apiClient } from '../../lib/api/client';
 import { setTokens } from '../../lib/auth/token-storage';
 import { useAuthStore } from '../../stores/auth-store';
+import { useTranslation } from '../../lib/i18n';
 
 export default function LoginScreen() {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -43,10 +45,10 @@ export default function LoginScreen() {
 
   return (
     <View className="flex-1 justify-center px-6 bg-white">
-      <Text className="text-3xl font-bold mb-8 text-center">Masuk</Text>
+      <Text className="text-3xl font-bold mb-8 text-center">{t('login')}</Text>
       
       <View className="mb-4">
-        <Text className="text-sm font-medium mb-1">Email</Text>
+        <Text className="text-sm font-medium mb-1">{t('email')}</Text>
         <TextInput
           className="border border-gray-300 rounded-lg px-4 py-3 bg-gray-50"
           value={email}
@@ -57,7 +59,7 @@ export default function LoginScreen() {
       </View>
 
       <View className="mb-8">
-        <Text className="text-sm font-medium mb-1">Password</Text>
+        <Text className="text-sm font-medium mb-1">{t('password')}</Text>
         <TextInput
           className="border border-gray-300 rounded-lg px-4 py-3 bg-gray-50"
           value={password}
@@ -74,14 +76,14 @@ export default function LoginScreen() {
         {isLoading ? (
           <ActivityIndicator color="white" />
         ) : (
-          <Text className="text-white font-semibold text-lg">Masuk</Text>
+          <Text className="text-white font-semibold text-lg">{t('login')}</Text>
         )}
       </TouchableOpacity>
 
       <View className="flex-row justify-center">
-        <Text className="text-gray-600">Belum punya akun? </Text>
+        <Text className="text-gray-600">{t('dontHaveAccount')}</Text>
         <Link href="/(auth)/register" className="text-blue-600 font-medium">
-          Daftar
+          {t('register')}
         </Link>
       </View>
     </View>
