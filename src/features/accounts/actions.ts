@@ -2,9 +2,10 @@
 
 import { db } from "@/lib/db"
 import { revalidatePath } from "next/cache"
-import { accountSchema, AccountFormValues } from "./schema"
+import { accountSchema, AccountFormValues } from "@/shared/schemas/accounts"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
+import * as domain from "@/lib/domain/accounts"
 
 async function getUserId() {
   const session = await getServerSession(authOptions)
@@ -17,19 +18,7 @@ async function getUserId() {
 export async function getAccounts(includeInactive = false) {
   try {
     const userId = await getUserId()
-    const accounts = await db.account.findMany({
-      where: { 
-        userId,
-        ...(!includeInactive ? { isActive: true } : {})
-      },
-      orderBy: { createdAt: "desc" },
-    })
-    
-    const serializedAccounts = accounts.map((acc: any) => ({
-      ...acc,
-      balance: Number(acc.balance)
-    }))
-    
+    const serializedAccounts = await domain.getAccounts(userId, includeInactive)
     return { success: true, data: serializedAccounts }
   } catch (error: any) {
     if (error.message === "Unauthorized") return { success: false, error: "Unauthorized" }
@@ -42,20 +31,7 @@ export async function createAccount(data: AccountFormValues) {
     const userId = await getUserId()
     const parsed = accountSchema.parse(data)
     
-    if (parsed.type === "CASH") {
-      return { success: false, error: "cash_creation_forbidden" }
-    }
-    
-    await db.account.create({
-      data: {
-        userId,
-        name: parsed.name,
-        type: parsed.type,
-        balance: parsed.balance,
-        currency: parsed.currency,
-        isActive: true,
-      },
-    })
+    await domain.createAccount(userId, parsed)
     
     revalidatePath("/accounts")
     revalidatePath("/")
@@ -63,6 +39,9 @@ export async function createAccount(data: AccountFormValues) {
     return { success: true }
   } catch (error: any) {
     if (error.message === "Unauthorized") return { success: false, error: "Unauthorized" }
+    if (error instanceof domain.AccountError) {
+      return { success: false, error: error.message } // Use raw error message like "cash_creation_forbidden" for i18n
+    }
     console.error("Create account error:", error)
     return { success: false, error: "Failed to create account" }
   }
@@ -72,56 +51,38 @@ export async function deleteAccount(id: string) {
   try {
     const userId = await getUserId()
     
-    const account = await db.account.findUnique({ 
-      where: { id },
-      include: {
-        _count: {
-          select: {
-            transactionsFrom: true,
-            transactionsTo: true,
-            loans: true,
-            repayments: true,
-            investmentTx: true,
-            recurring: true
-          }
-        }
-      }
-    })
-    
-    if (!account || account.userId !== userId) {
-      return { success: false, error: "not_found" }
-    }
-
-    if (account.isSystem || account.type === "CASH") {
-      return { success: false, error: "system_account_deletion_forbidden" }
-    }
-
-    const hasHistory = 
-      account._count.transactionsFrom > 0 ||
-      account._count.transactionsTo > 0 ||
-      account._count.loans > 0 ||
-      account._count.repayments > 0 ||
-      account._count.investmentTx > 0 ||
-      account._count.recurring > 0
-
-    if (hasHistory) {
-      // Archive instead of hard delete
-      await db.account.update({
-        where: { id },
-        data: { isActive: false }
-      })
-    } else {
-      // Safe to hard delete
-      await db.account.delete({ where: { id } })
-    }
+    const result = await domain.deleteAccount(userId, id)
     
     revalidatePath("/accounts")
     revalidatePath("/")
-    revalidatePath("/transactions")
     
-    return { success: true, archived: hasHistory }
+    return { success: true, archived: result.archived }
   } catch (error: any) {
     if (error.message === "Unauthorized") return { success: false, error: "Unauthorized" }
-    return { success: false, error: "Failed to delete or archive account." }
+    if (error instanceof domain.AccountError) {
+      return { success: false, error: error.message }
+    }
+    console.error("Delete account error:", error)
+    return { success: false, error: "Failed to delete account" }
+  }
+}
+
+export async function updateAccount(id: string, data: { name: string, type: "BANK" | "E_WALLET" | "CASH" | "INVESTMENT" | "LOAN" }) {
+  try {
+    const userId = await getUserId()
+    
+    await domain.updateAccount(userId, id, data)
+    
+    revalidatePath("/accounts")
+    revalidatePath("/")
+    
+    return { success: true }
+  } catch (error: any) {
+    if (error.message === "Unauthorized") return { success: false, error: "Unauthorized" }
+    if (error instanceof domain.AccountError) {
+      return { success: false, error: error.message }
+    }
+    console.error("Update account error:", error)
+    return { success: false, error: "Failed to update account" }
   }
 }

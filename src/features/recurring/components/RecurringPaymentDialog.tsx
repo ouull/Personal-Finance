@@ -5,7 +5,7 @@
 import { useState } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
-import { RecurringPaymentFormValues, recurringPaymentSchema } from "../schema"
+import { RecurringPaymentFormValues, recurringPaymentSchema } from "@/shared/schemas/recurring"
 import { createRecurringPayment } from "../actions"
 import {
   Dialog,

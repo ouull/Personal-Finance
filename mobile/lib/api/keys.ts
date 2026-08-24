@@ -1,0 +1,14 @@
+export const queryKeys = {
+  dashboard: ['dashboard'] as const,
+  accounts: ['accounts'] as const,
+  transactions: (params: any) => ['transactions', params] as const,
+  categories: (type?: string) => ['categories', type] as const,
+  profile: ['profile'] as const,
+  investments: ['investments'] as const,
+  investment: (id: string) => ['investment', id] as const,
+  lending: ['lending'] as const,
+  loan: (id: string) => ['loan', id] as const,
+  goals: ['goals'] as const,
+  recurring: ['recurring'] as const,
+  notifications: ['notifications'] as const,
+};

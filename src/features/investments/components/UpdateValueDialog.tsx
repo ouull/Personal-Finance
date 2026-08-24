@@ -7,7 +7,7 @@
 import { useState } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
-import { UpdateValueFormValues, updateValueSchema } from "../schema"
+import { UpdateValueFormValues, updateValueSchema } from "@/shared/schemas/investments"
 import { updateInvestmentValue } from "../actions"
 import {
   Dialog,

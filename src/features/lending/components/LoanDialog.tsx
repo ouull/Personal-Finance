@@ -5,7 +5,7 @@
 import { useState } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
-import { LoanFormValues, loanSchema } from "../schema"
+import { LoanFormValues, loanSchema } from "@/shared/schemas/lending"
 import { createLoan } from "../actions"
 import {
   Dialog,

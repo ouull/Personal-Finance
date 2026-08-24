@@ -3,7 +3,8 @@
 import { db } from "@/lib/db"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
-import { seedUserFinancialData } from "@/lib/seed"
+import * as domain from "@/lib/domain/categories"
+import { revalidatePath } from "next/cache"
 
 async function getUserId() {
   const session = await getServerSession(authOptions)
@@ -16,21 +17,7 @@ async function getUserId() {
 export async function getCategories(type?: "INCOME" | "EXPENSE", includeInactive = false) {
   try {
     const userId = await getUserId()
-    
-    // Lazy initialization for users created before seed logic or with incomplete seeds
-    const defaultCount = await db.category.count({ where: { userId, isDefault: true } })
-    if (defaultCount < 52) {
-      await seedUserFinancialData(userId)
-    }
-
-    const categories = await db.category.findMany({
-      where: { 
-        userId,
-        ...(type ? { type } : {}),
-        ...(!includeInactive ? { isActive: true } : {})
-      },
-      orderBy: { name: "asc" }
-    })
+    const categories = await domain.getCategories(userId, type, includeInactive)
     return { success: true, data: categories }
   } catch (error: any) {
     if (error.message === "Unauthorized") return { success: false, error: "Unauthorized" }
@@ -41,44 +28,32 @@ export async function getCategories(type?: "INCOME" | "EXPENSE", includeInactive
 export async function createCategory(data: { name: string, type: "INCOME" | "EXPENSE", icon?: string, color?: string }) {
   try {
     const userId = await getUserId()
-    
-    const category = await db.category.create({
-      data: {
-        userId,
-        name: data.name,
-        type: data.type,
-        icon: data.icon,
-        color: data.color,
-        isActive: true,
-        isDefault: false
-      }
-    })
-    return { success: true, data: category }
+    await domain.createCategory(userId, data)
+    revalidatePath("/categories")
+    revalidatePath("/")
+    revalidatePath("/transactions")
+    return { success: true }
   } catch (error: any) {
     if (error.message === "Unauthorized") return { success: false, error: "Unauthorized" }
+    console.error("Create category error:", error)
     return { success: false, error: "Failed to create category" }
   }
 }
 
-export async function updateCategory(id: string, data: { name: string, icon?: string, color?: string }) {
+export async function updateCategory(id: string, data: { name: string, type?: "INCOME" | "EXPENSE", icon?: string, color?: string }) {
   try {
     const userId = await getUserId()
-    
-    const category = await db.category.findUnique({ where: { id } })
-    if (!category || category.userId !== userId) {
-      return { success: false, error: "Category not found or unauthorized" }
-    }
-
-    const updated = await db.category.update({
-      where: { id },
-      data: {
-        name: data.name,
-        icon: data.icon,
-        color: data.color
-      }
-    })
-    return { success: true, data: updated }
+    await domain.updateCategory(userId, id, data)
+    revalidatePath("/categories")
+    revalidatePath("/")
+    revalidatePath("/transactions")
+    return { success: true }
   } catch (error: any) {
+    if (error.message === "Unauthorized") return { success: false, error: "Unauthorized" }
+    if (error instanceof domain.CategoryError) {
+      return { success: false, error: error.message }
+    }
+    console.error("Update category error:", error)
     return { success: false, error: "Failed to update category" }
   }
 }
@@ -86,51 +61,18 @@ export async function updateCategory(id: string, data: { name: string, icon?: st
 export async function deleteCategory(id: string) {
   try {
     const userId = await getUserId()
-    
-    const category = await db.category.findUnique({ 
-      where: { id },
-      include: {
-        _count: {
-          select: {
-            transactions: true,
-            budgets: true,
-            recurringPayments: true
-          }
-        }
-      }
-    })
-    
-    if (!category || category.userId !== userId) {
-      return { success: false, error: "Category not found or unauthorized" }
-    }
-
-    if (category.isDefault) {
-      await db.category.update({
-        where: { id },
-        data: { isActive: false }
-      })
-      return { success: true, archived: true }
-    }
-
-    const hasHistory = 
-      category._count.transactions > 0 ||
-      category._count.budgets > 0 ||
-      category._count.recurringPayments > 0
-
-    if (hasHistory) {
-      // Archive
-      await db.category.update({
-        where: { id },
-        data: { isActive: false }
-      })
-    } else {
-      // Hard delete
-      await db.category.delete({ where: { id } })
-    }
-    
-    return { success: true, archived: hasHistory }
+    const result = await domain.deleteCategory(userId, id)
+    revalidatePath("/categories")
+    revalidatePath("/")
+    revalidatePath("/transactions")
+    return { success: true, archived: result.archived }
   } catch (error: any) {
-    return { success: false, error: "Failed to delete or archive category." }
+    if (error.message === "Unauthorized") return { success: false, error: "Unauthorized" }
+    if (error instanceof domain.CategoryError) {
+      return { success: false, error: error.message }
+    }
+    console.error("Delete category error:", error)
+    return { success: false, error: "Failed to delete category" }
   }
 }
 

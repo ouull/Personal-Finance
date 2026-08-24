@@ -5,7 +5,7 @@
 import { useState } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
-import { InvestmentFormValues, investmentSchema } from "../schema"
+import { InvestmentFormValues, investmentSchema } from "@/shared/schemas/investments"
 import { createInvestment } from "../actions"
 import {
   Dialog,

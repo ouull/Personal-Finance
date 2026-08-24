@@ -4,69 +4,47 @@ import { db } from "@/lib/db"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import bcrypt from "bcryptjs"
-import { changePasswordSchema, ChangePasswordValues } from "./schema"
+import * as domain from "@/lib/domain/profile"
+import { changePasswordSchema, ChangePasswordValues } from "@/shared/schemas/profile"
+
+async function getUserId() {
+  const session = await getServerSession(authOptions)
+  if (!session?.user?.id) {
+    throw new Error("Unauthorized")
+  }
+  return session.user.id
+}
 
 export async function changePassword(data: ChangePasswordValues) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
-      return { success: false, error: "Unauthorized" }
-    }
+    const userId = await getUserId()
     
     const parsed = changePasswordSchema.safeParse(data)
     if (!parsed.success) {
       return { success: false, error: "Invalid data" }
     }
     
-    const user = await db.user.findUnique({
-      where: { id: session.user.id }
-    })
-    
-    if (!user || !user.password) {
-      return { success: false, error: "User not found" }
-    }
-    
-    const isValid = await bcrypt.compare(data.currentPassword, user.password)
-    if (!isValid) {
-      return { success: false, error: "Incorrect current password" }
-    }
-    
-    const hashedNewPassword = await bcrypt.hash(data.newPassword, 10)
-    
-    await db.user.update({
-      where: { id: user.id },
-      data: { password: hashedNewPassword }
-    })
+    await domain.changePassword(userId, data)
     
     return { success: true }
-  } catch {
+  } catch (error: any) {
+    if (error.message === "Unauthorized") return { success: false, error: "Unauthorized" }
+    if (error.message === "User not found") return { success: false, error: "User not found" }
+    if (error.message === "Incorrect current password") return { success: false, error: "Incorrect current password" }
     return { success: false, error: "Failed to change password" }
   }
 }
 
 export async function getUserProfile() {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
-      return { success: false, error: "Unauthorized" }
-    }
+    const userId = await getUserId()
     
-    const user = await db.user.findUnique({
-      where: { id: session.user.id },
-      select: {
-        name: true,
-        email: true,
-        createdAt: true,
-        language: true,
-      }
-    })
-    
-    if (!user) {
-      return { success: false, error: "User not found" }
-    }
+    const user = await domain.getUserProfile(userId)
     
     return { success: true, data: user }
-  } catch {
+  } catch (error: any) {
+    if (error.message === "Unauthorized") return { success: false, error: "Unauthorized" }
+    if (error.message === "User not found") return { success: false, error: "User not found" }
     return { success: false, error: "Failed to get user profile" }
   }
 }

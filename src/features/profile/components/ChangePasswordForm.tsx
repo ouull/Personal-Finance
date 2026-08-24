@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
-import { changePasswordSchema, ChangePasswordValues } from "../schema"
+import { changePasswordSchema, ChangePasswordValues } from "@/shared/schemas/profile"
 import { changePassword } from "../actions"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"

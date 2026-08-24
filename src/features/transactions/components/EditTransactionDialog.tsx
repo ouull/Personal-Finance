@@ -5,7 +5,7 @@
 import { useState } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
-import { TransactionFormValues, transactionSchema } from "../schema"
+import { TransactionFormValues, transactionSchema } from "@/shared/schemas/transactions"
 import { updateTransaction, deleteTransaction } from "../actions"
 import {
   Dialog,
