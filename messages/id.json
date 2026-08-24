@@ -15,10 +15,18 @@
     "availableCash": "Uang Tunai",
     "invested": "Diinvestasikan",
     "lentOut": "Dipinjamkan",
-    "upcomingPayments": "Tagihan Mendatang",
+    "upcomingPayments": "Pembayaran Mendatang",
     "outstandingLoans": "Pinjaman Tertunda",
     "recentTransactions": "Transaksi Terakhir",
-    "financialGoals": "Tujuan Keuangan"
+    "financialGoals": "Tujuan Keuangan",
+    "spendingCategories": "Kategori Pengeluaran",
+    "thisMonth": "Bulan ini",
+    "noExpensesYet": "Belum ada pengeluaran",
+    "accountBalanceDistribution": "Distribusi Saldo Akun",
+    "percentageOfYourBalance": "Persentase saldo Anda",
+    "noAccountBalancesYet": "Belum ada saldo akun",
+    "noUpcomingPayments": "Tidak ada tagihan dalam 14 hari ke depan.",
+    "noOutstandingLoans": "Tidak ada pinjaman tertunda."
   },
   "settings": {
     "title": "Pengaturan",
@@ -151,7 +159,9 @@
     "selectAccount": "Pilih akun",
     "income": "Pemasukan",
     "expense": "Pengeluaran",
-    "transfer": "Transfer"
+    "transfer": "Transfer",
+    "allTypes": "Semua Tipe",
+    "allAccounts": "Semua Akun"
   },
   "accountsPage": {
     "title": "Akun",
@@ -193,7 +203,11 @@
     "repaymentDesc": "Catat pembayaran cicilan atau pelunasan dari",
     "depositAccount": "Rekening Tujuan",
     "repaymentAmount": "Jumlah Pembayaran",
-    "repaymentDate": "Tanggal Pembayaran"
+    "repaymentDate": "Tanggal Pembayaran",
+    "totalLent": "Total Dipinjamkan",
+    "outstanding": "Sisa Pinjaman",
+    "totalReceived": "Total Diterima",
+    "overdueLoans": "Pinjaman Jatuh Tempo"
   },
   "investmentsPage": {
     "title": "Investasi",
@@ -230,7 +244,10 @@
     "nextDueDate": "Tanggal Tagihan Berikutnya",
     "category": "Kategori",
     "account": "Bayar Dari Akun",
-    "notes": "Catatan (Opsional)"
+    "notes": "Catatan (Opsional)",
+    "monthlyCommitments": "Komitmen Bulanan",
+    "dueThisWeek": "Jatuh Tempo Minggu Ini",
+    "activeSubscriptions": "Langganan Aktif"
   },
   "goalsPage": {
     "title": "Target Keuangan",

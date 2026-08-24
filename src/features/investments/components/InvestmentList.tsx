@@ -52,7 +52,7 @@ export function InvestmentList({ investments, accounts }: InvestmentListProps) {
           <span className="text-2xl">📈</span>
         </div>
         <h3 className="text-lg font-bold text-slate-800 mb-2">{t.investmentsPage?.noInvestments || "You haven't added any investments yet."}</h3>
-        <p className="text-slate-500 mb-6 max-w-sm">{t.investmentsPage?.emptyState || "Start tracking your portfolio by adding your first asset."}</p>
+        <p className="text-slate-500 mb-6 max-w-sm">{t.investmentsPage?.empty || "Start tracking your portfolio by adding your first asset."}</p>
         <InvestmentDialog />
       </div>
     )

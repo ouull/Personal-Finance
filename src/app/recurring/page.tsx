@@ -72,21 +72,21 @@ export default async function RecurringPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-white p-5 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between">
             <div className="text-sm font-medium text-slate-500 flex items-center gap-2">
-              <RefreshCw className="w-4 h-4 text-indigo-500" /> Monthly Commitments
+              <RefreshCw className="w-4 h-4 text-indigo-500" /> {t.recurringPage?.monthlyCommitments || "Monthly Commitments"}
             </div>
             <div className="text-2xl font-bold text-slate-900 mt-2">~{formatRupiah(monthlyCommitments)}</div>
           </div>
           
           <div className="bg-white p-5 rounded-2xl border border-amber-200 shadow-sm flex flex-col justify-between">
             <div className="text-sm font-medium text-amber-600 flex items-center gap-2">
-              <CalendarClock className="w-4 h-4" /> Due This Week
+              <CalendarClock className="w-4 h-4" /> {t.recurringPage?.dueThisWeek || "Due This Week"}
             </div>
             <div className="text-2xl font-bold text-amber-600 mt-2">{formatRupiah(dueThisWeek)}</div>
           </div>
           
           <div className="bg-white p-5 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between">
             <div className="text-sm font-medium text-slate-500 flex items-center gap-2">
-              <CreditCard className="w-4 h-4 text-cyan-500" /> Active Subscriptions
+              <CreditCard className="w-4 h-4 text-cyan-500" /> {t.recurringPage?.activeSubscriptions || "Active Subscriptions"}
             </div>
             <div className="text-2xl font-bold text-slate-900 mt-2">{activeSubscriptionsCount}</div>
           </div>

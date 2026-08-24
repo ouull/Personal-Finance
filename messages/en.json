@@ -18,7 +18,15 @@
     "upcomingPayments": "Upcoming Payments",
     "outstandingLoans": "Outstanding Loans",
     "recentTransactions": "Recent Transactions",
-    "financialGoals": "Financial Goals"
+    "financialGoals": "Financial Goals",
+    "spendingCategories": "Spending Categories",
+    "thisMonth": "This month",
+    "noExpensesYet": "No expenses yet",
+    "accountBalanceDistribution": "Account Balance Distribution",
+    "percentageOfYourBalance": "Percentage of your balance",
+    "noAccountBalancesYet": "No account balances yet",
+    "noUpcomingPayments": "No upcoming payments in the next 14 days.",
+    "noOutstandingLoans": "No outstanding loans right now."
   },
   "settings": {
     "title": "Settings",
@@ -151,7 +159,9 @@
     "selectAccount": "Select account",
     "income": "Income",
     "expense": "Expense",
-    "transfer": "Transfer"
+    "transfer": "Transfer",
+    "allTypes": "All Types",
+    "allAccounts": "All Accounts"
   },
   "accountsPage": {
     "title": "Accounts",
@@ -193,7 +203,11 @@
     "repaymentDesc": "Record an installment or full repayment from",
     "depositAccount": "Deposit to Account",
     "repaymentAmount": "Repayment Amount",
-    "repaymentDate": "Repayment Date"
+    "repaymentDate": "Repayment Date",
+    "totalLent": "Total Lent",
+    "outstanding": "Outstanding",
+    "totalReceived": "Total Received",
+    "overdueLoans": "Overdue Loans"
   },
   "investmentsPage": {
     "title": "Investments",
@@ -230,7 +244,10 @@
     "nextDueDate": "Next Due Date",
     "category": "Category",
     "account": "Pay From Account",
-    "notes": "Notes (Optional)"
+    "notes": "Notes (Optional)",
+    "monthlyCommitments": "Monthly Commitments",
+    "dueThisWeek": "Due This Week",
+    "activeSubscriptions": "Active Subscriptions"
   },
   "goalsPage": {
     "title": "Financial Goals",

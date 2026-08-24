@@ -53,28 +53,28 @@ export default async function LendingPage() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="bg-white p-5 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between">
             <div className="text-sm font-medium text-slate-500 flex items-center gap-2">
-              <UserMinus className="w-4 h-4 text-indigo-500" /> Total Lent
+              <UserMinus className="w-4 h-4 text-indigo-500" /> {t.lendingPage?.totalLent || "Total Lent"}
             </div>
             <div className="text-2xl font-bold text-slate-900 mt-2">{formatRupiah(totalLent)}</div>
           </div>
           
           <div className="bg-white p-5 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between">
             <div className="text-sm font-medium text-slate-500 flex items-center gap-2">
-              <HandCoins className="w-4 h-4 text-orange-500" /> Outstanding
+              <HandCoins className="w-4 h-4 text-orange-500" /> {t.lendingPage?.outstanding || "Outstanding"}
             </div>
             <div className="text-2xl font-bold text-orange-600 mt-2">{formatRupiah(totalOutstanding)}</div>
           </div>
           
           <div className="bg-white p-5 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between">
             <div className="text-sm font-medium text-slate-500 flex items-center gap-2">
-              <HandCoins className="w-4 h-4 text-green-500" /> Total Received
+              <HandCoins className="w-4 h-4 text-green-500" /> {t.lendingPage?.totalReceived || "Total Received"}
             </div>
             <div className="text-2xl font-bold text-green-600 mt-2">{formatRupiah(totalReceived)}</div>
           </div>
 
           <div className="bg-white p-5 rounded-2xl border border-red-200 shadow-sm flex flex-col justify-between">
             <div className="text-sm font-medium text-red-500 flex items-center gap-2">
-              <Clock className="w-4 h-4" /> Overdue Loans
+              <Clock className="w-4 h-4" /> {t.lendingPage?.overdueLoans || "Overdue Loans"}
             </div>
             <div className="text-2xl font-bold text-red-600 mt-2">{overdueCount}</div>
           </div>

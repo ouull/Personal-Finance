@@ -2,6 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts"
+import { useTranslation } from "@/lib/TranslationContext"
 
 interface SpendingData {
   name: string
@@ -12,6 +13,7 @@ interface SpendingData {
 const COLORS = ['#f43f5e', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#ec4899', '#14b8a6']
 
 export function SpendingChart({ data, categoryTranslations = {} }: { data: SpendingData[], categoryTranslations?: Record<string, string> }) {
+  const { t } = useTranslation()
   
   const chartData = data.map(d => {
     let displayName = d.name
@@ -32,13 +34,13 @@ export function SpendingChart({ data, categoryTranslations = {} }: { data: Spend
   return (
     <Card className="shadow-sm">
       <CardHeader>
-        <CardTitle className="text-lg">Spending Categories</CardTitle>
-        <CardDescription>This month</CardDescription>
+        <CardTitle className="text-lg">{t.dashboard?.spendingCategories || "Spending Categories"}</CardTitle>
+        <CardDescription>{t.dashboard?.thisMonth || "This month"}</CardDescription>
       </CardHeader>
       <CardContent>
         {data.length === 0 ? (
           <div className="h-[250px] flex items-center justify-center text-sm text-muted-foreground border-dashed border rounded-xl">
-            No expenses yet
+            {t.dashboard?.noExpensesYet || "No expenses yet"}
           </div>
         ) : (
           <div className="h-[250px] w-full mt-2">

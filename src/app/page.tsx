@@ -181,23 +181,23 @@ export default async function DashboardPage() {
           <FadeIn delay={0.4}>
             <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Upcoming Payments */}
-              <div className="bg-white p-5 rounded-2xl border border-slate-200/60 shadow-sm">
-                <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
-                  <RefreshCw className="w-4 h-4 text-amber-500" /> Upcoming Payments
+              <div className="bg-white border rounded-xl p-6 shadow-sm">
+                <h3 className="font-semibold text-slate-800 mb-4 flex items-center gap-2">
+                  <RefreshCw className="w-4 h-4 text-amber-500" /> {t.dashboard?.upcomingPayments || "Upcoming Payments"}
                 </h3>
                 {upcomingPayments.length === 0 ? (
-                  <p className="text-sm text-slate-500">No upcoming payments in the next 14 days.</p>
+                  <p className="text-sm text-slate-500">{t.dashboard?.noUpcomingPayments || "No upcoming payments in the next 14 days."}</p>
                 ) : (
-                  <div className="space-y-3">
-                    {upcomingPayments.map((p: any) => (
-                      <div key={p.id} className="flex justify-between items-center p-3 bg-slate-50 rounded-xl">
+                  <div className="space-y-4">
+                    {upcomingPayments.map((payment: any) => (
+                      <div key={payment.id} className="flex justify-between items-center pb-4 border-b last:border-0 last:pb-0">
                         <div>
-                          <p className="font-medium text-slate-800">{p.name}</p>
+                          <p className="font-medium text-slate-800 text-sm">{payment.name}</p>
                           <p className="text-xs text-slate-500">
-                            {format(new Date(p.nextDueDate), "d MMM")} • in {differenceInDays(new Date(p.nextDueDate), new Date())} days
+                            {new Date(payment.nextDueDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
                           </p>
                         </div>
-                        <span className="font-bold text-slate-900">{formatRupiah(p.amount)}</span>
+                        <p className="font-bold text-slate-800 text-sm">{formatRupiah(payment.amount)}</p>
                       </div>
                     ))}
                   </div>
@@ -205,12 +205,12 @@ export default async function DashboardPage() {
               </div>
 
               {/* Outstanding Loans */}
-              <div className="bg-white p-5 rounded-2xl border border-slate-200/60 shadow-sm">
-                <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
-                  <HandCoins className="w-4 h-4 text-indigo-500" /> Outstanding Loans
+              <div className="bg-white border rounded-xl p-6 shadow-sm">
+                <h3 className="font-semibold text-slate-800 mb-4 flex items-center gap-2">
+                  <HandCoins className="w-4 h-4 text-indigo-500" /> {t.dashboard?.outstandingLoans || "Outstanding Loans"}
                 </h3>
                 {outstandingLoans.length === 0 ? (
-                  <p className="text-sm text-slate-500">No outstanding loans right now.</p>
+                  <p className="text-sm text-slate-500">{t.dashboard?.noOutstandingLoans || "No outstanding loans right now."}</p>
                 ) : (
                   <div className="space-y-3">
                     {outstandingLoans.map((l: any) => (

@@ -69,8 +69,8 @@ export function RecurringPaymentList({ payments, accounts, categories }: Recurri
         <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4 border border-slate-100">
           <span className="text-2xl">📅</span>
         </div>
-        <h3 className="text-lg font-bold text-slate-800 mb-2">{t.recurringPage?.emptyState || "No recurring payments yet"}</h3>
-        <p className="text-slate-500 mb-6 max-w-sm">{t.recurringPage?.emptyDesc || "Set up your subscriptions, bills, and other regular payments to track them automatically."}</p>
+        <h3 className="text-lg font-bold text-slate-800 mb-2">{t.recurringPage?.noRecurring || "No recurring payments yet"}</h3>
+        <p className="text-slate-500 mb-6 max-w-sm">{t.recurringPage?.empty || "Set up your subscriptions, bills, and other regular payments to track them automatically."}</p>
         <RecurringPaymentDialog accounts={accounts} categories={categories} />
       </div>
     )

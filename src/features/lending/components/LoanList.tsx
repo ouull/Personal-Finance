@@ -56,7 +56,7 @@ export function LoanList({ loans, accounts }: LoanListProps) {
           <span className="text-2xl">🤝</span>
         </div>
         <h3 className="text-lg font-bold text-slate-800 mb-2">{t.lendingPage?.noLoans || "No outstanding loans"}</h3>
-        <p className="text-slate-500 mb-6 max-w-sm">{t.lendingPage?.emptyState || "You haven't lent money to anyone yet. When you do, it will show up here."}</p>
+        <p className="text-slate-500 mb-6 max-w-sm">{t.lendingPage?.empty || "You haven't lent money to anyone yet. When you do, it will show up here."}</p>
         <LoanDialog accounts={accounts} />
       </div>
     )

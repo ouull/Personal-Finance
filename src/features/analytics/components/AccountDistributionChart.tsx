@@ -2,6 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts"
+import { useTranslation } from "@/lib/TranslationContext"
 
 interface AccountData {
   name: string
@@ -11,6 +12,8 @@ interface AccountData {
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#f43f5e', '#ec4899', '#14b8a6']
 
 export function AccountDistributionChart({ data }: { data: AccountData[] }) {
+  const { t } = useTranslation()
+
   const formatRupiah = (value: number) => {
     return new Intl.NumberFormat("id-ID", {
       style: "currency",
@@ -22,13 +25,13 @@ export function AccountDistributionChart({ data }: { data: AccountData[] }) {
   return (
     <Card className="shadow-sm">
       <CardHeader>
-        <CardTitle className="text-lg">Account Balance Distribution</CardTitle>
-        <CardDescription>Percentage of your balance</CardDescription>
+        <CardTitle className="text-lg">{t.dashboard?.accountBalanceDistribution || "Account Balance Distribution"}</CardTitle>
+        <CardDescription>{t.dashboard?.percentageOfYourBalance || "Percentage of your balance"}</CardDescription>
       </CardHeader>
       <CardContent>
         {data.length === 0 ? (
           <div className="h-[250px] flex items-center justify-center text-sm text-muted-foreground border-dashed border rounded-xl">
-            No account balances yet
+            {t.dashboard?.noAccountBalancesYet || "No account balances yet"}
           </div>
         ) : (
           <div className="h-[250px] w-full mt-2">
