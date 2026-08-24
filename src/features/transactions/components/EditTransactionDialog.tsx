@@ -48,7 +48,12 @@ interface Transaction {
   categoryId?: string | null
 }
 
-interface Category { id: string, name: string, icon?: string | null }
+interface Category {
+  id: string
+  name: string
+  type: string
+  icon?: string | null
+}
 
 interface EditTransactionDialogProps {
   transaction: Transaction
@@ -62,6 +67,8 @@ export function EditTransactionDialog({ transaction, accounts, categories = [], 
   const [open, setOpen] = useState(false)
   const [isPending, setIsPending] = useState(false)
   const [activeTab, setActiveTab] = useState<"EXPENSE" | "INCOME" | "TRANSFER">(transaction.type as any)
+
+  const filteredCategories = categories.filter(c => c.type === activeTab)
 
   const { register, handleSubmit, setValue, formState: { errors }, watch, clearErrors } = useForm<TransactionFormValues>({
     resolver: zodResolver(transactionSchema) as any,
@@ -95,7 +102,10 @@ export function EditTransactionDialog({ transaction, accounts, categories = [], 
       toast.success(t.common?.success || "Transaction updated")
       setOpen(false)
     } else {
-      toast.error(result.error || t.common?.error || "Failed to update transaction")
+      const errorMessage = result.error && t.errors && t.errors[result.error] 
+        ? t.errors[result.error] 
+        : (result.error || t.common?.error || "Failed to update transaction")
+      toast.error(errorMessage as string)
     }
   }
 
@@ -110,7 +120,10 @@ export function EditTransactionDialog({ transaction, accounts, categories = [], 
       toast.success(t.common?.success || "Transaction deleted")
       setOpen(false)
     } else {
-      toast.error(result.error || t.common?.error || "Failed to delete transaction")
+      const errorMessage = result.error && t.errors && t.errors[result.error] 
+        ? t.errors[result.error] 
+        : (result.error || t.common?.error || "Failed to delete transaction")
+      toast.error(errorMessage as string)
     }
   }
 
@@ -173,11 +186,11 @@ export function EditTransactionDialog({ transaction, accounts, categories = [], 
               {errors.date && <p className="text-sm text-red-500">{errors.date.message}</p>}
             </div>
 
-            {activeTab === "EXPENSE" && (
+            {(activeTab === "EXPENSE" || activeTab === "INCOME") && (
               <div className="space-y-2">
                 <Label htmlFor="edit-category">{t.transactionsPage?.category || "Category"}</Label>
                 <CategoryPicker
-                  categories={categories}
+                  categories={filteredCategories}
                   value={watch("categoryId") || ""}
                   onChange={(val) => setValue("categoryId", val, { shouldValidate: true })}
                   error={!!errors.categoryId}

@@ -286,5 +286,12 @@
     "addExpense": "Catat Pengeluaran",
     "addIncome": "Catat Pemasukan",
     "addTransfer": "Catat Transfer"
+  },
+  "errors": {
+    "category_type_mismatch": "Jenis kategori tidak sesuai dengan jenis transaksi.",
+    "cash_creation_forbidden": "Tidak dapat membuat akun Cash secara manual.",
+    "system_account_deletion_forbidden": "Akun sistem tidak dapat dihapus.",
+    "not_found": "Data tidak ditemukan.",
+    "Unauthorized": "Tidak ada akses."
   }
 }

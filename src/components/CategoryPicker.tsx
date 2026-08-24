@@ -14,6 +14,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
+import { useTranslation } from "@/lib/TranslationContext"
+import { getCategoryDisplayName } from "@/lib/display-helpers"
 
 export interface Category {
   id: string
@@ -42,7 +44,7 @@ const CATEGORY_GROUPS = [
   { id: 'health', slugs: ['medicine', 'doctor', 'hospital', 'fitness'] },
   { id: 'education', slugs: ['books', 'course', 'education', 'certification'] },
   { id: 'financial', slugs: ['admin_fee', 'bank_fee', 'transfer_fee', 'tax'] },
-  { id: 'social_and_other', slugs: ['gift', 'donation', 'family', 'other', 'salary'] },
+  { id: 'social_and_other', slugs: ['gift', 'donation', 'family', 'other'] },
 ]
 
 export function CategoryPicker({
@@ -53,6 +55,7 @@ export function CategoryPicker({
   error = false,
   groupTranslations = {}
 }: CategoryPickerProps) {
+  const { t } = useTranslation()
   const [open, setOpen] = React.useState(false)
 
   const selectedCategory = categories.find((cat) => cat.id === value)
@@ -86,7 +89,7 @@ export function CategoryPicker({
         )}
       >
           <span className="truncate">
-            {selectedCategory ? selectedCategory.name : placeholder}
+            {selectedCategory ? getCategoryDisplayName(selectedCategory, t) : placeholder}
           </span>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
       </PopoverTrigger>
@@ -121,7 +124,7 @@ export function CategoryPicker({
                           value === category.id ? "opacity-100" : "opacity-0"
                         )}
                       />
-                      <span className="text-sm font-medium">{category.name}</span>
+                      <span className="text-sm font-medium">{getCategoryDisplayName(category, t)}</span>
                     </CommandItem>
                   ))}
                 </CommandGroup>

@@ -52,3 +52,4 @@ dev.db
 
 # temp
 test-db.ts
+scratch/

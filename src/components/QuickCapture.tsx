@@ -150,7 +150,7 @@ export function QuickCapture({ accounts, categories, merchants, frequentCategori
             <div className="space-y-1">
               <label className="text-xs font-semibold text-slate-500 uppercase">{t.quickCapture?.category || "Category"}</label>
               <CategoryPicker
-                categories={categories}
+                categories={expenseCategories}
                 value={categoryId}
                 onChange={setCategoryId}
                 groupTranslations={groupTranslations}

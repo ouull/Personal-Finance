@@ -80,7 +80,10 @@ export function TransactionForm({ accounts, categories = [], groupTranslations =
       reset()
       onSuccess?.()
     } else {
-      toast.error(result.error || t.common?.error || "Gagal")
+      const errorMessage = result.error && t.errors && t.errors[result.error] 
+        ? t.errors[result.error] 
+        : (result.error || t.common?.error || "Gagal")
+      toast.error(errorMessage as string)
     }
   }
 
@@ -142,7 +145,7 @@ export function TransactionForm({ accounts, categories = [], groupTranslations =
           </div>
         )}
 
-        {activeTab === "EXPENSE" && (
+        {(activeTab === "EXPENSE" || activeTab === "INCOME") && (
           <div className="space-y-2">
             <Label htmlFor="categoryId">{t.transactionsPage?.category || "Category"}</Label>
             <CategoryPicker

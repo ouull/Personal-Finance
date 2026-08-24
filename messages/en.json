@@ -286,5 +286,12 @@
     "addExpense": "Record Expense",
     "addIncome": "Record Income",
     "addTransfer": "Record Transfer"
+  },
+  "errors": {
+    "category_type_mismatch": "Category type does not match transaction type.",
+    "cash_creation_forbidden": "Cannot create Cash account manually.",
+    "system_account_deletion_forbidden": "System accounts cannot be deleted.",
+    "not_found": "Data not found.",
+    "Unauthorized": "Unauthorized."
   }
 }

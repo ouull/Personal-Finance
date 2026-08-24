@@ -29,6 +29,15 @@ export async function createTransaction(data: TransactionFormValues) {
         const destAcc = await tx.account.findUnique({ where: { id: parsed.destinationAccountId } })
         if (!destAcc || destAcc.userId !== userId) throw new Error("Unauthorized destination account")
       }
+      
+      // 1.5. Validate Category Type Matches Transaction Type
+      if (parsed.categoryId && (parsed.type === "INCOME" || parsed.type === "EXPENSE")) {
+        const category = await tx.category.findUnique({ where: { id: parsed.categoryId } })
+        if (!category || category.userId !== userId) throw new Error("Unauthorized category")
+        if (category.type !== parsed.type) {
+          throw new Error("category_type_mismatch")
+        }
+      }
 
       // 2. Create transaction record
       const transaction = await tx.transaction.create({
@@ -105,6 +114,15 @@ export async function updateTransaction(id: string, data: TransactionFormValues)
       if (parsed.destinationAccountId) {
         const destAcc = await tx.account.findUnique({ where: { id: parsed.destinationAccountId } })
         if (!destAcc || destAcc.userId !== userId) throw new Error("Unauthorized destination account")
+      }
+      
+      // 1.5. Validate Category Type Matches Transaction Type
+      if (parsed.categoryId && (parsed.type === "INCOME" || parsed.type === "EXPENSE")) {
+        const category = await tx.category.findUnique({ where: { id: parsed.categoryId } })
+        if (!category || category.userId !== userId) throw new Error("Unauthorized category")
+        if (category.type !== parsed.type) {
+          throw new Error("category_type_mismatch")
+        }
       }
 
       // 2. Reverse original financial effects

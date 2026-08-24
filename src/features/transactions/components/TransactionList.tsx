@@ -28,6 +28,7 @@ interface Transaction {
 interface Category {
   id: string
   name: string
+  type: string
   icon?: string | null
 }
 

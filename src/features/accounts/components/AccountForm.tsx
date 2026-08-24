@@ -48,7 +48,10 @@ export function AccountForm({ onSuccess }: AccountFormProps) {
       reset()
       onSuccess?.()
     } else {
-      toast.error(result.error || t.common?.error || "An error occurred")
+      const errorMessage = result.error && t.errors && t.errors[result.error] 
+        ? t.errors[result.error] 
+        : (result.error || t.common?.error || "An error occurred")
+      toast.error(errorMessage as string)
     }
   }
 

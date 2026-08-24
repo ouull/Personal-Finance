@@ -1,40 +1,6 @@
 import { db } from "@/lib/db"
 
 export async function seedUserFinancialData(userId: string, transactionClient?: any) {
-  const tx = transactionClient || db
-
-  // 1. Create System Cash Account (Concurrency Safe)
-  // We use a row-level lock on the User record to serialize concurrent requests,
-  // completely eliminating the race condition that causes duplicate Cash accounts.
-  const executeCashSeed = async (prismaTx: any) => {
-    await prismaTx.user.update({
-      where: { id: userId },
-      data: { updatedAt: new Date() }
-    })
-    const existingCash = await prismaTx.account.findFirst({
-      where: { userId, type: "CASH" }
-    })
-    if (!existingCash) {
-      await prismaTx.account.create({
-        data: {
-          userId,
-          name: "Cash",
-          type: "CASH",
-          isSystem: true,
-          isActive: true,
-          balance: 0,
-        }
-      })
-    }
-  }
-
-  if (transactionClient) {
-    await executeCashSeed(transactionClient)
-  } else {
-    await db.$transaction(executeCashSeed)
-  }
-
-  // 2. Create Default Categories with Slugs
   const defaultCategories = [
     // FOOD & BEVERAGE
     { name: "Makanan", slug: "food", type: "EXPENSE", icon: "Utensils", color: "orange" },
@@ -113,24 +79,68 @@ export async function seedUserFinancialData(userId: string, transactionClient?: 
     { name: "Gaji", slug: "salary", type: "INCOME", icon: "Wallet", color: "emerald" },
   ]
 
-  // Idempotent seeding: Only create categories that don't exist by slug
-  const existingCategories = await tx.category.findMany({ where: { userId } })
-  const existingSlugs = new Set(existingCategories.map((c: any) => c.slug).filter(Boolean))
+  const executeSeed = async (prismaTx: any) => {
+    // 1. Acquire Lock for Concurrency Safety
+    await prismaTx.user.update({
+      where: { id: userId },
+      data: { updatedAt: new Date() }
+    })
 
-  for (const cat of defaultCategories) {
-    if (!existingSlugs.has(cat.slug)) {
-      await tx.category.create({
+    // 2. Cash Normalization & Creation
+    const cashAccounts = await prismaTx.account.findMany({
+      where: { userId, type: "CASH" },
+      orderBy: { createdAt: "asc" }
+    })
+
+    if (cashAccounts.length === 0) {
+      await prismaTx.account.create({
         data: {
           userId,
-          name: cat.name,
-          slug: cat.slug,
-          type: cat.type,
-          icon: cat.icon,
-          color: cat.color,
-          isDefault: true,
-          isActive: true
+          name: "Cash",
+          type: "CASH",
+          isSystem: true,
+          isActive: true,
+          balance: 0,
         }
       })
+    } else {
+      // Normalization: Ensure exactly one is marked as system
+      const systemCashAccounts = cashAccounts.filter((a: any) => a.isSystem)
+      if (systemCashAccounts.length === 0) {
+        // Mark the oldest as system
+        await prismaTx.account.update({
+          where: { id: cashAccounts[0].id },
+          data: { isSystem: true }
+        })
+      }
     }
+
+    // 3. Create Default Categories with Slugs
+    const existingCategories = await prismaTx.category.findMany({ where: { userId } })
+    const existingSlugs = new Set(existingCategories.map((c: any) => c.slug).filter(Boolean))
+
+    for (const cat of defaultCategories) {
+      if (!existingSlugs.has(cat.slug)) {
+        await prismaTx.category.create({
+          data: {
+            userId,
+            name: cat.name,
+            slug: cat.slug,
+            type: cat.type,
+            icon: cat.icon,
+            color: cat.color,
+            isDefault: true,
+            isActive: true
+          }
+        })
+      }
+    }
+  }
+
+  if (transactionClient) {
+    await executeSeed(transactionClient)
+  } else {
+    // High isolation level is recommended but standard serial transaction usually suffices for single-row lock
+    await db.$transaction(executeSeed)
   }
 }

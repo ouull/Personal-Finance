@@ -33,7 +33,7 @@ export default async function RootLayout({
   const { t, language } = await getTranslation();
 
   return (
-    <html lang="en">
+    <html lang={language === "ID" ? "id" : "en"}>
       <body
         className={`${inter.variable} ${jetbrainsMono.variable} font-sans antialiased bg-slate-50 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-indigo-50 via-white to-cyan-50 min-h-screen selection:bg-indigo-100 selection:text-indigo-900`}
       >

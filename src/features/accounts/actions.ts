@@ -42,6 +42,10 @@ export async function createAccount(data: AccountFormValues) {
     const userId = await getUserId()
     const parsed = accountSchema.parse(data)
     
+    if (parsed.type === "CASH") {
+      return { success: false, error: "cash_creation_forbidden" }
+    }
+    
     await db.account.create({
       data: {
         userId,
@@ -85,11 +89,11 @@ export async function deleteAccount(id: string) {
     })
     
     if (!account || account.userId !== userId) {
-      return { success: false, error: "Account not found or unauthorized" }
+      return { success: false, error: "not_found" }
     }
 
-    if (account.isSystem) {
-      return { success: false, error: "System accounts cannot be deleted or archived." }
+    if (account.isSystem || account.type === "CASH") {
+      return { success: false, error: "system_account_deletion_forbidden" }
     }
 
     const hasHistory = 

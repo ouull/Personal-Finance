@@ -32,13 +32,16 @@ export function DeleteAccountDialog({ accountId, accountName }: DeleteAccountDia
     
     if (res.success) {
       if (res.archived) {
-        toast.success("Akun diarsipkan. (Memiliki riwayat transaksi)")
+        toast.success(t.accountsPage?.archivedSuccess || "Akun diarsipkan. (Memiliki riwayat transaksi)")
       } else {
-        toast.success("Akun berhasil dihapus permanen")
+        toast.success(t.accountsPage?.deletedSuccess || "Akun berhasil dihapus permanen")
       }
       setOpen(false)
     } else {
-      toast.error(res.error || "Gagal menghapus akun")
+      const errorMessage = res.error && t.errors && t.errors[res.error] 
+        ? t.errors[res.error] 
+        : (res.error || "Gagal menghapus akun")
+      toast.error(errorMessage as string)
     }
   }
 
