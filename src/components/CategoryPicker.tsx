@@ -3,17 +3,6 @@
 import * as React from "react"
 import { Check, ChevronsUpDown } from "lucide-react"
 import { cn } from "@/lib/utils"
-import {
-  Command,
-  CommandGroup,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
 import { useTranslation } from "@/lib/TranslationContext"
 import { getCategoryDisplayName } from "@/lib/display-helpers"
 
@@ -57,6 +46,21 @@ export function CategoryPicker({
 }: CategoryPickerProps) {
   const { t } = useTranslation()
   const [open, setOpen] = React.useState(false)
+  const dropdownRef = React.useRef<HTMLDivElement>(null)
+
+  React.useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setOpen(false)
+      }
+    }
+    if (open) {
+      document.addEventListener("mousedown", handleClickOutside)
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
+  }, [open])
 
   const selectedCategory = categories.find((cat) => cat.id === value)
   
@@ -80,9 +84,10 @@ export function CategoryPicker({
   const allCategoriesLabel = groupTranslations['all_categories'] || "SEMUA KATEGORI"
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger
+    <div className="relative" ref={dropdownRef}>
+      <button
         type="button"
+        onClick={() => setOpen(!open)}
         className={cn(
           "flex h-9 w-full items-center justify-between rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
           !value && "text-muted-foreground",
@@ -93,31 +98,31 @@ export function CategoryPicker({
             {selectedCategory ? getCategoryDisplayName(selectedCategory, t) : placeholder}
           </span>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-      </PopoverTrigger>
+      </button>
       
-      <PopoverContent 
-        className="w-[calc(100vw-32px)] sm:w-full min-w-[300px] p-0 shadow-xl border-slate-200/60 z-50" 
-        align="start"
-        sideOffset={8}
-      >
-        <Command>
-          <CommandList className="max-h-[350px] overflow-y-auto overscroll-contain">
+      {open && (
+        <div 
+          className="absolute left-0 top-full mt-2 w-[calc(100vw-32px)] sm:w-full min-w-[300px] p-0 shadow-xl border border-slate-200/60 rounded-lg bg-popover z-50 overflow-hidden" 
+        >
+          <div className="max-h-[350px] overflow-y-auto overscroll-contain">
             <div className="sticky top-0 bg-slate-50 border-b border-slate-100 p-2 z-10 shadow-sm">
               <span className="text-xs font-bold text-slate-500 tracking-wider pl-2">{allCategoriesLabel}</span>
             </div>
             {Object.entries(groupedCategories).map(([groupId, cats]) => {
               const groupName = groupTranslations[groupId] || groupId;
               return (
-                <CommandGroup key={groupId} heading={groupName} className="border-b border-slate-50 last:border-0">
+                <div key={groupId} className="border-b border-slate-50 last:border-0 pb-1">
+                  <div className="px-3 py-1.5 text-xs font-medium text-muted-foreground">
+                    {groupName}
+                  </div>
                   {cats.map((category) => (
-                    <CommandItem
+                    <div
                       key={category.id}
-                      value={category.id} // use ID directly since we aren't searching
-                      onSelect={() => {
+                      onClick={() => {
                         onChange(category.id)
                         setOpen(false)
                       }}
-                      className="py-2.5 px-3 cursor-pointer"
+                      className="flex items-center py-2 px-2 cursor-pointer hover:bg-accent hover:text-accent-foreground text-sm rounded-sm mx-1"
                     >
                       <Check
                         className={cn(
@@ -125,15 +130,15 @@ export function CategoryPicker({
                           value === category.id ? "opacity-100" : "opacity-0"
                         )}
                       />
-                      <span className="text-sm font-medium">{getCategoryDisplayName(category, t)}</span>
-                    </CommandItem>
+                      <span className="font-medium">{getCategoryDisplayName(category, t)}</span>
+                    </div>
                   ))}
-                </CommandGroup>
+                </div>
               )
             })}
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
+          </div>
+        </div>
+      )}
+    </div>
   )
 }
