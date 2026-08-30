@@ -60,12 +60,13 @@ export async function createInvestment(
     accountId?: string
   }
 ) {
-  if (data.initialAmount !== undefined && data.accountId) {
+  const { initialAmount, accountId } = data;
+  if (initialAmount !== undefined && accountId) {
     return await db.$transaction(async (tx) => {
-      const acc = await tx.account.findUnique({ where: { id: data.accountId } })
+      const acc = await tx.account.findUnique({ where: { id: accountId } })
       if (!acc || acc.userId !== userId) throw new Error("Unauthorized account")
       
-      if (Number(acc.balance) < data.initialAmount) {
+      if (Number(acc.balance) < initialAmount) {
         throw new Error("Insufficient account balance")
       }
 
@@ -76,8 +77,8 @@ export async function createInvestment(
           type: data.type,
           platform: data.platform,
           notes: data.notes,
-          totalInvested: data.initialAmount,
-          currentValue: data.initialAmount,
+          totalInvested: initialAmount,
+          currentValue: initialAmount,
           status: "ACTIVE"
         }
       })
@@ -85,29 +86,29 @@ export async function createInvestment(
       await tx.investmentTransaction.create({
         data: {
           investmentId: inv.id,
-          accountId: data.accountId,
+          accountId: accountId,
           type: "BUY",
-          amount: data.initialAmount,
+          amount: initialAmount,
           date: new Date(),
           notes: "Initial deposit"
         }
       })
 
-      if (data.accountId) {
+      if (accountId) {
         await tx.account.update({
-          where: { id: data.accountId },
-          data: { balance: { decrement: data.initialAmount } }
+          where: { id: accountId },
+          data: { balance: { decrement: initialAmount } }
         })
         
         await tx.transaction.create({
           data: {
             userId,
             type: 'EXPENSE',
-            amount: data.initialAmount,
+            amount: initialAmount,
             date: new Date(),
             description: `Investasi: ${data.name}`,
             notes: data.notes || 'Pembelian investasi awal',
-            sourceAccountId: data.accountId,
+            sourceAccountId: accountId,
           }
         })
       }
