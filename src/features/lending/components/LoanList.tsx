@@ -65,7 +65,7 @@ export function LoanList({ loans, accounts }: LoanListProps) {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center mb-6">
-        <h3 className="font-semibold text-slate-800">Your Loans</h3>
+        <h3 className="font-semibold text-slate-800">{t.lendingPage?.yourLoans || "Your Loans"}</h3>
         <LoanDialog accounts={accounts} />
       </div>
       
@@ -76,7 +76,7 @@ export function LoanList({ loans, accounts }: LoanListProps) {
               <div>
                 <h4 className="font-bold text-lg text-slate-800">{loan.borrowerName}</h4>
                 <p className="text-xs text-slate-500 mt-1">
-                  Lent on {format(new Date(loan.lentDate), "d MMM yyyy")}
+                  {t.lendingPage?.lentOn ? `${t.lendingPage.lentOn} ` : "Lent on "}{format(new Date(loan.lentDate), "d MMM yyyy")}
                 </p>
               </div>
               {getStatusBadge(loan.status)}
@@ -84,20 +84,20 @@ export function LoanList({ loans, accounts }: LoanListProps) {
 
             <div className="mt-4 space-y-3 flex-1">
               <div className="flex justify-between items-center text-sm">
-                <span className="text-slate-500">Original Amount</span>
+                <span className="text-slate-500">{t.lendingPage?.originalAmount || "Original Amount"}</span>
                 <span className="font-medium text-slate-700">{formatRupiah(loan.amount)}</span>
               </div>
               <div className="flex justify-between items-center text-sm">
-                <span className="text-slate-500">Already Paid</span>
+                <span className="text-slate-500">{t.lendingPage?.alreadyPaid || "Already Paid"}</span>
                 <span className="font-medium text-green-600">{formatRupiah(loan.totalRepaid)}</span>
               </div>
               <div className="pt-2 border-t border-slate-100 flex justify-between items-center">
-                <span className="text-sm font-semibold text-slate-800">Remaining</span>
+                <span className="text-sm font-semibold text-slate-800">{t.lendingPage?.remaining || "Remaining"}</span>
                 <span className="font-bold text-slate-900">{formatRupiah(loan.remainingAmount)}</span>
               </div>
               {loan.dueDate && (
                 <div className="flex justify-between items-center text-xs mt-2 bg-slate-50 p-2 rounded-lg">
-                  <span className="text-slate-500">Due Date</span>
+                  <span className="text-slate-500">{t.lendingPage?.dueDate ? t.lendingPage.dueDate.replace(" (Opsional)", "").replace(" (Optional)", "") : "Due Date"}</span>
                   <span className="font-medium text-orange-600">{format(new Date(loan.dueDate), "d MMM yyyy")}</span>
                 </div>
               )}

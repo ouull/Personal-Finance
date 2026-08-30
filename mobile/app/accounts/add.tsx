@@ -21,12 +21,25 @@ export default function AddAccountScreen() {
   const [initialBalance, setInitialBalance] = useState('');
   const [isTypeSheetOpen, setIsTypeSheetOpen] = useState(false);
 
+  // Format number with dots
+  const formatNumber = (numStr: string) => {
+    const cleanNum = numStr.replace(/\D/g, '');
+    if (!cleanNum) return '';
+    return parseInt(cleanNum, 10).toLocaleString('id-ID');
+  };
+
+  const handleBalanceChange = (text: string) => {
+    setInitialBalance(formatNumber(text));
+  };
+
   const mutation = useMutation({
     mutationFn: async () => {
+      const rawBalance = initialBalance ? parseFloat(initialBalance.replace(/\./g, '')) : 0;
       return apiClient.post('/accounts', {
         name,
         type,
-        initialBalance: initialBalance ? parseFloat(initialBalance) : 0,
+        balance: rawBalance,
+        currency: 'IDR'
       });
     },
     onSuccess: () => {
@@ -50,7 +63,7 @@ export default function AddAccountScreen() {
 
   return (
     <View className="flex-1 bg-white">
-      <View className="flex-row items-center p-4 border-b border-gray-100 pt-12">
+      <View className="flex-row items-center p-4 border-b border-gray-100 pt-16">
         <TouchableOpacity onPress={() => router.back()} className="mr-4">
           <ChevronLeft size={28} color="#111827" />
         </TouchableOpacity>
@@ -82,7 +95,7 @@ export default function AddAccountScreen() {
             placeholder="0"
             keyboardType="numeric"
             value={initialBalance}
-            onChangeText={setInitialBalance}
+            onChangeText={handleBalanceChange}
           />
 
           <View className="mt-8">
@@ -100,13 +113,13 @@ export default function AddAccountScreen() {
         <View className="p-4">
           <Text className="text-lg font-bold mb-4">{t('accountType')}</Text>
           <TouchableOpacity 
-            className="py-4 border-b border-gray-100"
+            style={{ paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: '#f3f4f6' }}
             onPress={() => { setType('BANK'); setIsTypeSheetOpen(false); }}
           >
             <Text className="text-base text-gray-900">{t('bank')}</Text>
           </TouchableOpacity>
           <TouchableOpacity 
-            className="py-4 border-b border-gray-100"
+            style={{ paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: '#f3f4f6' }}
             onPress={() => { setType('EWALLET'); setIsTypeSheetOpen(false); }}
           >
             <Text className="text-base text-gray-900">{t('eWallet')}</Text>

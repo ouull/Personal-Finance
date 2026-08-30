@@ -32,10 +32,12 @@ apiClient.interceptors.response.use(
 
     // Only attempt refresh if error is 401 and request has not been retried yet
     if (error.response?.status === 401 && !originalRequest._retry) {
-      if (originalRequest.url === '/auth/refresh') {
-        // Refresh token itself failed/expired
-        await clearTokens();
-        useAuthStore.getState().logout();
+      // Skip refresh for auth endpoints where 401 means invalid credentials/refresh token
+      if (originalRequest.url === '/auth/refresh' || originalRequest.url === '/auth/login' || originalRequest.url === '/auth/register') {
+        if (originalRequest.url === '/auth/refresh') {
+          await clearTokens();
+          useAuthStore.getState().logout();
+        }
         return Promise.reject(error);
       }
 
@@ -54,10 +56,10 @@ apiClient.interceptors.response.use(
         });
 
         if (response.data?.success && response.data?.data) {
-          const { accessToken, refreshToken } = response.data.data;
-          await setTokens(accessToken, refreshToken);
+          const { tokens } = response.data.data;
+          await setTokens(tokens.accessToken, tokens.refreshToken);
           
-          originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+          originalRequest.headers.Authorization = `Bearer ${tokens.accessToken}`;
           return apiClient(originalRequest);
         } else {
           throw new Error('Invalid refresh response');

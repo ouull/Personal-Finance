@@ -53,7 +53,7 @@ export function InvestmentList({ investments, accounts }: InvestmentListProps) {
         </div>
         <h3 className="text-lg font-bold text-slate-800 mb-2">{t.investmentsPage?.noInvestments || "You haven't added any investments yet."}</h3>
         <p className="text-slate-500 mb-6 max-w-sm">{t.investmentsPage?.empty || "Start tracking your portfolio by adding your first asset."}</p>
-        <InvestmentDialog />
+        <InvestmentDialog accounts={accounts} />
       </div>
     )
   }
@@ -62,7 +62,7 @@ export function InvestmentList({ investments, accounts }: InvestmentListProps) {
     <div className="space-y-4">
       <div className="flex justify-between items-center mb-6">
         <h3 className="font-semibold text-slate-800">Your Portfolio</h3>
-        <InvestmentDialog />
+        <InvestmentDialog accounts={accounts} />
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -118,11 +118,20 @@ export function InvestmentList({ investments, accounts }: InvestmentListProps) {
                     </span>
                   </div>
                 )}
+                
+                {(inv as any).cashBalance > 0 && (
+                  <div className="col-span-2 pt-2 border-t border-slate-100 mt-1 flex justify-between items-center">
+                    <span className="text-xs font-semibold text-slate-600">Saldo Mengendap / Cash</span>
+                    <span className="text-sm font-bold text-slate-900">
+                      {formatRupiah((inv as any).cashBalance)}
+                    </span>
+                  </div>
+                )}
               </div>
 
-              {inv.status !== "SOLD" && (
+              {(inv.status !== "SOLD" || (inv as any).cashBalance > 0) && (
                 <div className="mt-5 pt-4 border-t border-slate-100 flex justify-end">
-                  <InvestmentTransactionDialog accounts={accounts} investment={inv} />
+                  <InvestmentTransactionDialog accounts={accounts} investment={inv as any} />
                 </div>
               )}
             </div>

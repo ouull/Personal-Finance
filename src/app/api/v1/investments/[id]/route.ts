@@ -64,3 +64,22 @@ export async function PATCH(
     return NextResponse.json({ success: false, error: "Failed to update investment" }, { status: 500 })
   }
 }
+
+export async function DELETE(
+  req: Request,
+  context: { params: Promise<{ id: string }> }
+) {
+  const params = await context.params;
+  const { user, response } = await verifyApiAuth(req)
+  if (response) return response
+
+  try {
+    await domain.deleteInvestment(user.id, params.id)
+    return NextResponse.json({ success: true })
+  } catch (error: any) {
+    if (error.message === "Unauthorized investment") {
+      return NextResponse.json({ success: false, error: "Not found" }, { status: 404 })
+    }
+    return NextResponse.json({ success: false, error: "Failed to delete investment" }, { status: 500 })
+  }
+}

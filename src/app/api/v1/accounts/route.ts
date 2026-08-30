@@ -34,6 +34,7 @@ export async function POST(req: Request) {
     const account = await domain.createAccount(user.id, parsed.data)
     return NextResponse.json({ success: true, data: account }, { status: 201 })
   } catch (error: any) {
+    console.error("CREATE ACCOUNT ERROR:", error);
     return NextResponse.json({ success: false, error: "Failed to create account" }, { status: 500 })
   }
 }

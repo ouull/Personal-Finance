@@ -11,7 +11,8 @@ export async function GET(req: Request) {
         id: user.id,
         name: user.name,
         email: user.email,
-        language: user.language
+        language: user.language,
+        image: user.image
       }
     })
   } catch (error) {

@@ -5,6 +5,7 @@ interface User {
   email: string;
   name: string | null;
   language: string;
+  image?: string | null;
 }
 
 interface AuthState {

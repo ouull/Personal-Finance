@@ -1,5 +1,25 @@
 import { db } from "@/lib/db"
 
+async function getOrCreateLendingCategory(tx: any, userId: string, type: "INCOME" | "EXPENSE") {
+  const slug = type === "EXPENSE" ? "lending_expense" : "lending_income";
+  let cat = await tx.category.findFirst({ where: { userId, slug } });
+  if (!cat) {
+    cat = await tx.category.create({
+      data: {
+        userId,
+        name: "Pinjaman",
+        slug,
+        type,
+        icon: "CreditCard",
+        color: type === "EXPENSE" ? "indigo" : "emerald",
+        isDefault: true,
+        isActive: true
+      }
+    });
+  }
+  return cat.id;
+}
+
 export async function getLoans(userId: string) {
   const loans = await db.loan.findMany({
     where: { userId },
@@ -38,6 +58,7 @@ export async function createLoan(
   data: {
     accountId: string
     borrowerName: string
+    type?: string
     amount: number
     lentDate: Date
     dueDate?: Date
@@ -54,6 +75,7 @@ export async function createLoan(
         userId,
         accountId: data.accountId,
         borrowerName: data.borrowerName,
+        type: data.type || "LENT",
         amount: data.amount,
         lentDate: data.lentDate,
         dueDate: data.dueDate,
@@ -62,11 +84,50 @@ export async function createLoan(
       }
     })
 
-    // 2. Decrease account balance (this is not an expense, just asset movement)
-    await tx.account.update({
-      where: { id: data.accountId },
-      data: { balance: { decrement: data.amount } }
-    })
+    // 2. Adjust account balance
+    const actualType = data.type || "LENT"
+    if (actualType === "LENT") {
+      await tx.account.update({
+        where: { id: data.accountId },
+        data: { balance: { decrement: data.amount } }
+      })
+    } else {
+      await tx.account.update({
+        where: { id: data.accountId },
+        data: { balance: { increment: data.amount } }
+      })
+    }
+
+    // 3. Create a transaction record
+    if (actualType === "LENT") {
+      const categoryId = await getOrCreateLendingCategory(tx, userId, "EXPENSE");
+      await tx.transaction.create({
+        data: {
+          userId,
+          categoryId,
+          sourceAccountId: data.accountId,
+          type: "EXPENSE",
+          amount: data.amount,
+          date: data.lentDate,
+          description: data.borrowerName,
+          notes: data.notes
+        }
+      })
+    } else {
+      const categoryId = await getOrCreateLendingCategory(tx, userId, "INCOME");
+      await tx.transaction.create({
+        data: {
+          userId,
+          categoryId,
+          destinationAccountId: data.accountId,
+          type: "INCOME",
+          amount: data.amount,
+          date: data.lentDate,
+          description: data.borrowerName,
+          notes: data.notes
+        }
+      })
+    }
 
     return loan
   })
@@ -110,11 +171,18 @@ export async function addRepayment(
       }
     })
 
-    // 2. Increase account balance
-    await tx.account.update({
-      where: { id: data.accountId },
-      data: { balance: { increment: data.amount } }
-    })
+    // 2. Adjust account balance
+    if (loan.type === "LENT") {
+      await tx.account.update({
+        where: { id: data.accountId },
+        data: { balance: { increment: data.amount } }
+      })
+    } else {
+      await tx.account.update({
+        where: { id: data.accountId },
+        data: { balance: { decrement: data.amount } }
+      })
+    }
 
     // 3. Update loan status
     const newTotalRepaid = totalRepaid + data.amount
@@ -124,6 +192,37 @@ export async function addRepayment(
       where: { id: data.loanId },
       data: { status: newStatus }
     })
+
+    // 4. Create a transaction record for repayment
+    if (loan.type === "LENT") {
+      const categoryId = await getOrCreateLendingCategory(tx, userId, "INCOME");
+      await tx.transaction.create({
+        data: {
+          userId,
+          categoryId,
+          destinationAccountId: data.accountId,
+          type: "INCOME",
+          amount: data.amount,
+          date: data.paidDate,
+          description: loan.borrowerName,
+          notes: data.notes
+        }
+      })
+    } else {
+      const categoryId = await getOrCreateLendingCategory(tx, userId, "EXPENSE");
+      await tx.transaction.create({
+        data: {
+          userId,
+          categoryId,
+          sourceAccountId: data.accountId,
+          type: "EXPENSE",
+          amount: data.amount,
+          date: data.paidDate,
+          description: loan.borrowerName,
+          notes: data.notes
+        }
+      })
+    }
 
     return repayment
   })

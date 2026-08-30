@@ -17,5 +17,22 @@ export async function GET(req: Request) {
   }
 }
 
-// Optionally implement PATCH for profile data (name, language) in the future.
-// Right now domain only supports getUserProfile and changePassword.
+
+export async function PATCH(req: Request) {
+  const { user, response } = await verifyApiAuth(req)
+  if (response) return response
+
+  try {
+    const body = await req.json()
+    const { image } = body
+    
+    if (image !== undefined) {
+      const updatedProfile = await domain.updateProfile(user.id, { image })
+      return NextResponse.json({ success: true, data: updatedProfile })
+    }
+    
+    return NextResponse.json({ success: false, error: "No fields to update" }, { status: 400 })
+  } catch (error: any) {
+    return NextResponse.json({ success: false, error: "Failed to update profile" }, { status: 500 })
+  }
+}

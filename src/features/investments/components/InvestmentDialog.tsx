@@ -29,7 +29,12 @@ import {
 } from "@/components/ui/select"
 import { useTranslation } from "@/lib/TranslationContext"
 
-export function InvestmentDialog() {
+interface Account {
+  id: string
+  name: string
+}
+
+export function InvestmentDialog({ accounts = [] }: { accounts?: Account[] }) {
   const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const [isPending, setIsPending] = useState(false)
@@ -40,6 +45,8 @@ export function InvestmentDialog() {
       name: "",
       type: "STOCK",
       platform: "",
+      initialAmount: 0,
+      accountId: "",
     },
   })
 
@@ -66,7 +73,7 @@ export function InvestmentDialog() {
           <Plus className="mr-2 h-4 w-4" /> {t.investmentsPage?.addInvestment || "Add Investment"}
         </Button>
       } />
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>{t.investmentsPage?.addInvestment || "Add New Investment Portfolio"}</DialogTitle>
           <DialogDescription>
@@ -103,6 +110,51 @@ export function InvestmentDialog() {
           <div className="space-y-2">
             <Label htmlFor="platform">{t.investmentsPage?.platform || "Platform / Broker (Optional)"}</Label>
             <Input id="platform" placeholder="e.g. Ajaib, Bibit, Binance" {...register("platform")} />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="initialAmount">Initial Investment (Rp)</Label>
+              <Input 
+                id="initialAmount" 
+                type="text" 
+                inputMode="numeric"
+                placeholder="0"
+                value={new Intl.NumberFormat("id-ID").format(watch("initialAmount") || 0)}
+                onChange={(e) => {
+                  const rawValue = e.target.value.replace(/\D/g, "");
+                  const numValue = rawValue ? Number(rawValue) : 0;
+                  setValue("initialAmount", numValue, { shouldValidate: true });
+                }}
+              />
+              {errors.initialAmount && <p className="text-sm text-red-500">{errors.initialAmount.message}</p>}
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="accountId">Source Account</Label>
+              <Select 
+                value={watch("accountId") || ""}
+                onValueChange={(val) => setValue("accountId", val, { shouldValidate: true })} 
+              >
+                <SelectTrigger id="accountId" className="w-full">
+                  {watch("accountId") ? (
+                    <span data-slot="select-value" className="flex flex-1 text-left line-clamp-1">
+                      {accounts.find((a: any) => a.id === watch("accountId"))?.name}
+                    </span>
+                  ) : (
+                    <SelectValue placeholder="Select account" />
+                  )}
+                </SelectTrigger>
+                <SelectContent>
+                  {accounts.map((acc) => (
+                    <SelectItem key={acc.id} value={acc.id}>
+                      {acc.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.accountId && <p className="text-sm text-red-500">{errors.accountId.message as string}</p>}
+            </div>
           </div>
 
           <div className="space-y-2">

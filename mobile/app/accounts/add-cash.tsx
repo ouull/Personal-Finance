@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Alert, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { ChevronLeft } from 'lucide-react-native';
 import { apiClient } from '../../lib/api/client';
 import { queryKeys } from '../../lib/api/keys';
 import { useTranslation } from '../../lib/i18n';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
-import { BottomSheet } from '../../components/ui/bottom-sheet';
 import { getLocalizedError } from '../../lib/api/errors';
 
 export default function AddCashScreen() {
@@ -18,30 +17,28 @@ export default function AddCashScreen() {
   const queryClient = useQueryClient();
 
   const [amount, setAmount] = useState('');
-  const [type, setType] = useState('INCOME'); // or INITIAL_BALANCE
-  const [categoryId, setCategoryId] = useState('');
-  const [isTypeSheetOpen, setIsTypeSheetOpen] = useState(false);
-  const [isCategorySheetOpen, setIsCategorySheetOpen] = useState(false);
+  const [notes, setNotes] = useState('');
 
-  const { data: categoriesData } = useQuery({
-    queryKey: queryKeys.categories('INCOME'),
-    queryFn: async () => {
-      const res = await apiClient.get('/categories?type=INCOME');
-      return res.data;
-    },
-    enabled: type === 'INCOME',
-  });
+  // Format number with dots
+  const formatNumber = (numStr: string) => {
+    const cleanNum = numStr.replace(/\D/g, '');
+    if (!cleanNum) return '';
+    return parseInt(cleanNum, 10).toLocaleString('id-ID');
+  };
 
-  const categories = categoriesData?.data || [];
-  const selectedCategory = categories.find((c: any) => c.id === categoryId);
+  const handleAmountChange = (text: string) => {
+    setAmount(formatNumber(text));
+  };
 
   const mutation = useMutation({
     mutationFn: async () => {
+      const rawAmount = amount ? parseFloat(amount.replace(/\./g, '')) : 0;
       return apiClient.post('/transactions', {
-        amount: parseFloat(amount),
-        accountId: id,
-        type,
-        categoryId: type === 'INCOME' ? categoryId : undefined,
+        amount: rawAmount,
+        destinationAccountId: id,
+        type: 'INCOME',
+        notes: notes.trim() || undefined,
+        date: new Date().toISOString(),
       });
     },
     onSuccess: () => {
@@ -61,16 +58,12 @@ export default function AddCashScreen() {
       Alert.alert(t('errorOccurred'), 'Nominal harus diisi.');
       return;
     }
-    if (type === 'INCOME' && !categoryId) {
-      Alert.alert(t('errorOccurred'), 'Pemasukan Tunai memerlukan kategori.');
-      return;
-    }
     mutation.mutate();
   };
 
   return (
     <View className="flex-1 bg-white">
-      <View className="flex-row items-center p-4 border-b border-gray-100 pt-12">
+      <View className="flex-row items-center p-4 border-b border-gray-100 pt-16">
         <TouchableOpacity onPress={() => router.back()} className="mr-4">
           <ChevronLeft size={28} color="#111827" />
         </TouchableOpacity>
@@ -80,37 +73,20 @@ export default function AddCashScreen() {
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
         <ScrollView className="p-6" keyboardShouldPersistTaps="handled">
           
-          <View className="mb-4">
-            <Text className="text-sm font-medium text-gray-700 mb-1">{t('transactionType')}</Text>
-            <TouchableOpacity 
-              className="border border-gray-300 rounded-xl p-4 bg-gray-50 flex-row justify-between items-center"
-              onPress={() => setIsTypeSheetOpen(true)}
-            >
-              <Text className="text-gray-900 text-base">{type === 'INCOME' ? t('cashIncome') : t('openingBalance')}</Text>
-            </TouchableOpacity>
-          </View>
-
-          {type === 'INCOME' && (
-            <View className="mb-4">
-              <Text className="text-sm font-medium text-gray-700 mb-1">{t('category')}</Text>
-              <TouchableOpacity 
-                className="border border-gray-300 rounded-xl p-4 bg-gray-50 flex-row justify-between items-center"
-                onPress={() => setIsCategorySheetOpen(true)}
-              >
-                <Text className={selectedCategory ? 'text-gray-900 text-base' : 'text-gray-500 text-base'}>
-                  {selectedCategory ? selectedCategory.displayName : t('selectCategory')}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          )}
-
           <Input 
             label={t('amount')}
             placeholder="0"
             keyboardType="numeric"
             value={amount}
-            onChangeText={setAmount}
+            onChangeText={handleAmountChange}
             autoFocus
+          />
+          
+          <Input 
+            label="Keterangan (Opsional)"
+            placeholder="Misal: Uang jajan, Hasil jualan..."
+            value={notes}
+            onChangeText={setNotes}
           />
 
           <View className="mt-8">
@@ -118,49 +94,11 @@ export default function AddCashScreen() {
               label={t('save')} 
               onPress={handleSave} 
               isLoading={mutation.isPending} 
-              disabled={!amount || (type === 'INCOME' && !categoryId)} 
+              disabled={!amount} 
             />
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-
-      <BottomSheet visible={isTypeSheetOpen} onClose={() => setIsTypeSheetOpen(false)} height={220}>
-        <View className="p-4">
-          <Text className="text-lg font-bold mb-4">{t('selectType')}</Text>
-          <TouchableOpacity 
-            className="py-4 border-b border-gray-100"
-            onPress={() => { setType('INCOME'); setIsTypeSheetOpen(false); }}
-          >
-            <Text className="text-base text-gray-900">{t('cashIncome')}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            className="py-4 border-b border-gray-100"
-            onPress={() => { setType('INITIAL_BALANCE'); setIsTypeSheetOpen(false); }}
-          >
-            <Text className="text-base text-gray-900">{t('openingBalance')}</Text>
-          </TouchableOpacity>
-        </View>
-      </BottomSheet>
-
-      <BottomSheet visible={isCategorySheetOpen} onClose={() => setIsCategorySheetOpen(false)}>
-        <View className="p-4">
-          <Text className="text-lg font-bold mb-4">{t('selectCategory')}</Text>
-          <ScrollView style={{ maxHeight: 400 }}>
-            {categories.map((c: any) => (
-              <TouchableOpacity
-                key={c.id}
-                className="py-4 border-b border-gray-100"
-                onPress={() => {
-                  setCategoryId(c.id);
-                  setIsCategorySheetOpen(false);
-                }}
-              >
-                <Text className="text-base">{c.displayName}</Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
-      </BottomSheet>
     </View>
   );
 }

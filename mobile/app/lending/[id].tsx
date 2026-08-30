@@ -16,6 +16,7 @@ import { BottomSheet } from '../../components/ui/bottom-sheet';
 import { Input } from '../../components/ui/input';
 import { getLocalizedError } from '../../lib/api/errors';
 import { Badge } from '../../components/ui/badge';
+import { DatePickerInput } from '../../components/ui/date-picker-input';
 
 export default function LendingDetailScreen() {
   const { id } = useLocalSearchParams();
@@ -26,7 +27,8 @@ export default function LendingDetailScreen() {
   const [isRepaymentOpen, setIsRepaymentOpen] = useState(false);
   const [repaymentAmount, setRepaymentAmount] = useState('');
   const [accountId, setAccountId] = useState('');
-  const [isAccountSheetOpen, setIsAccountSheetOpen] = useState(false);
+  const [paidDate, setPaidDate] = useState<Date | null>(new Date());
+  const [isSelectingAccount, setIsSelectingAccount] = useState(false);
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: queryKeys.loan(id as string),
@@ -44,24 +46,27 @@ export default function LendingDetailScreen() {
     },
   });
 
-  const accounts = accountsData?.data?.filter((a: any) => a.status === 'ACTIVE') || [];
+  const accounts = accountsData?.data?.filter((a: any) => a.isActive === true) || [];
   const selectedAccount = accounts.find((a: any) => a.id === accountId);
 
   const repaymentMutation = useMutation({
     mutationFn: async () => {
       return apiClient.post(`/lending/${id}/repayments`, {
+        loanId: id,
         amount: parseFloat(repaymentAmount),
         accountId,
+        paidDate: paidDate ? paidDate.toISOString() : new Date().toISOString(),
       });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.loan(id as string) });
       queryClient.invalidateQueries({ queryKey: queryKeys.lending });
       queryClient.invalidateQueries({ queryKey: queryKeys.dashboard });
-      queryClient.invalidateQueries({ queryKey: queryKeys.accounts });
       setIsRepaymentOpen(false);
       setRepaymentAmount('');
       setAccountId('');
+      setPaidDate(new Date());
+      setIsSelectingAccount(false);
     },
     onError: (error: any) => {
       const code = error.response?.data?.error?.code || 'UNKNOWN';
@@ -101,108 +106,129 @@ export default function LendingDetailScreen() {
 
   return (
     <Screen safeArea={false}>
-      <View className="flex-row items-center px-4 pt-12 pb-4 bg-white border-b border-gray-100">
+      <View className="flex-row items-center px-4 pt-16 pb-4 bg-theme-bg border-b border-theme-border">
         <TouchableOpacity onPress={() => router.back()} className="mr-3">
           <ChevronLeft size={28} color="#111827" />
         </TouchableOpacity>
-        <Text className="text-xl font-bold text-gray-900">{loan.name}</Text>
+        <Text className="text-xl font-bold text-gray-900">{loan.borrowerName}</Text>
       </View>
 
       <ScrollView
-        className="flex-1 bg-gray-50 px-4 pt-6"
+        className="flex-1 bg-theme-bg px-4 pt-6"
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refetch} />}
       >
-        <Card className="mb-6 bg-white border-0 shadow-sm items-center py-6">
-          <Badge label={loan.status} variant={loan.status === 'PAID' ? 'success' : 'warning'} className="mb-2" />
-          <Text className="text-gray-500 font-medium mb-1">{t('outstanding')}</Text>
-          <AmountText amount={loan.outstandingAmount} className="text-gray-900 text-4xl font-bold mb-6" showSign={false} />
+        <Card className="mb-6 bg-theme-card border border-theme-border shadow-none items-center py-8 rounded-[24px]">
+          <Badge 
+            label={loan.status === 'OUTSTANDING' ? t('outstandingStatus') : loan.status === 'PARTIALLY_PAID' ? t('partiallyPaid') : loan.status === 'PAID' ? t('paid') : loan.status === 'OVERDUE' ? t('overdue') : loan.status} 
+            variant={loan.status === 'PAID' ? 'success' : loan.status === 'OVERDUE' ? 'danger' : 'warning'} 
+            className="mb-4" 
+          />
+          <Text className="text-gray-500 font-medium mb-2">{t('outstanding')}</Text>
+          <AmountText amount={loan.remainingAmount} className="text-gray-900 text-4xl font-extrabold mb-6" showSign={false} />
           
-          <View className="flex-row w-full justify-around border-t border-gray-100 pt-4">
+          <View className="flex-row w-full justify-around border-t border-theme-border pt-6">
             <View className="items-center">
-              <Text className="text-gray-500 text-xs mb-1">Total {loan.type === 'LOAN_GIVEN' ? t('loanGiven') : t('loanTaken')}</Text>
+              <Text className="text-gray-500 text-xs mb-1">Total {loan.type === 'BORROWED' ? 'Hutang' : t('loanGiven')}</Text>
               <AmountText amount={loan.amount} className="text-gray-900 font-semibold" showSign={false} />
             </View>
+            {loan.dueDate && (
+              <View className="items-center border-l border-theme-border pl-4 w-1/2">
+                <Text className="text-gray-500 text-xs mb-1">{t("deadline")}</Text>
+                <Text className="text-gray-900 font-semibold">
+                  {new Date(loan.dueDate).toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' })}
+                </Text>
+              </View>
+            )}
           </View>
         </Card>
 
         {loan.status !== 'PAID' && (
           <Button 
-            label={t('repayment')} 
-            className="mb-8" 
+            label={t("payInstallment")} 
+            className="mb-8 rounded-full" 
             onPress={handleOpenRepayment} 
           />
         )}
 
         <SectionHeader title={t('repayment')} />
-        <Card className="mb-8 p-0">
+        <Card className="mb-8 p-0 rounded-[24px] border border-theme-border bg-theme-card shadow-none">
           {loan.repayments?.length > 0 ? (
             loan.repayments.map((rp: any, index: number) => (
-              <View key={rp.id} className={`flex-row justify-between items-center p-4 ${index !== loan.repayments.length -1 ? 'border-b border-gray-100' : ''}`}>
+              <View key={rp.id} className={`flex-row justify-between items-center p-4 ${index !== loan.repayments.length -1 ? 'border-b border-theme-border' : ''}`}>
                 <View>
-                  <Text className="font-semibold text-gray-900">{new Date(rp.date).toLocaleDateString()}</Text>
+                  <Text className="font-semibold text-gray-900">
+                    {new Date(rp.paidDate).toLocaleString('id-ID', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                  </Text>
                 </View>
-                <AmountText amount={rp.amount} className="font-bold" showSign={false} />
+                <AmountText amount={rp.amount} className="font-bold text-gray-900" showSign={false} />
               </View>
             ))
           ) : (
-            <Text className="text-gray-500 italic p-4">{t('noRepaymentHistory')}</Text>
+            <Text className="text-gray-500 italic p-6 text-center">{t('noRepaymentHistory')}</Text>
           )}
         </Card>
         
         <View className="h-10" />
       </ScrollView>
 
-      <BottomSheet visible={isRepaymentOpen} onClose={() => setIsRepaymentOpen(false)} height={420}>
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1 p-6">
-          <Text className="text-xl font-bold mb-4">{t('repayment')}</Text>
-          
-          <Input 
-            label={t('amount')}
-            placeholder="0"
-            keyboardType="numeric"
-            value={repaymentAmount}
-            onChangeText={setRepaymentAmount}
-            autoFocus
-          />
-
-          <View className="mb-4">
-            <Text className="text-sm font-medium text-gray-700 mb-1">{t('account')}</Text>
-            <TouchableOpacity 
-              className="border border-gray-300 rounded-xl p-4 bg-gray-50 flex-row justify-between items-center"
-              onPress={() => setIsAccountSheetOpen(true)}
-            >
-              <Text className={selectedAccount ? 'text-gray-900 text-base' : 'text-gray-500 text-base'}>
-                {selectedAccount ? selectedAccount.name : t('selectAccount')}
-              </Text>
-            </TouchableOpacity>
+      <BottomSheet visible={isRepaymentOpen} onClose={() => { setIsRepaymentOpen(false); setIsSelectingAccount(false); }} height={isSelectingAccount ? 500 : 520}>
+        {isSelectingAccount ? (
+          <View className="p-4 flex-1">
+            <Text className="text-lg font-bold mb-4">{t('selectAccount')}</Text>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {accounts.map((a: any) => (
+                <TouchableOpacity
+                  key={a.id}
+                  className="py-4 border-b border-gray-100 flex-row justify-between items-center"
+                  onPress={() => {
+                    setAccountId(a.id);
+                    setIsSelectingAccount(false);
+                  }}
+                >
+                  <Text className="text-base text-gray-900">{a.name}</Text>
+                  <Text className="text-sm font-medium text-gray-500">Rp {Number(a.balance || 0).toLocaleString('id-ID')}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
           </View>
+        ) : (
+          <View className="flex-1 p-6">
+            <Text className="text-xl font-bold mb-4">{t('repayment')}</Text>
+            
+            <Input 
+              label={t('amount')}
+              placeholder="0"
+              keyboardType="numeric"
+              value={repaymentAmount ? parseInt(repaymentAmount, 10).toLocaleString('id-ID') : ''}
+              onChangeText={(text) => setRepaymentAmount(text.replace(/[^0-9]/g, ''))}
+              autoFocus
+            />
 
-          <View className="mt-4 flex-row gap-4">
-            <Button label={t('cancel')} variant="secondary" className="flex-1" onPress={() => setIsRepaymentOpen(false)} />
-            <Button label={t('save')} className="flex-1" onPress={handleSaveRepayment} isLoading={repaymentMutation.isPending} disabled={!repaymentAmount || !accountId} />
-          </View>
-        </KeyboardAvoidingView>
-      </BottomSheet>
-
-      <BottomSheet visible={isAccountSheetOpen} onClose={() => setIsAccountSheetOpen(false)}>
-        <View className="p-4">
-          <Text className="text-lg font-bold mb-4">{t('selectAccount')}</Text>
-          <ScrollView style={{ maxHeight: 400 }}>
-            {accounts.map((a: any) => (
-              <TouchableOpacity
-                key={a.id}
-                className="py-4 border-b border-gray-100"
-                onPress={() => {
-                  setAccountId(a.id);
-                  setIsAccountSheetOpen(false);
-                }}
+            <View className="mb-4">
+              <Text className="text-sm font-medium text-gray-700 mb-1">{t('account')}</Text>
+              <TouchableOpacity 
+                className="border border-gray-300 rounded-xl p-4 bg-gray-50 flex-row justify-between items-center"
+                onPress={() => setIsSelectingAccount(true)}
               >
-                <Text className="text-base">{a.name}</Text>
+                <Text className={selectedAccount ? 'text-gray-900 text-base' : 'text-gray-500 text-base'}>
+                  {selectedAccount ? selectedAccount.name : t('selectAccount')}
+                </Text>
               </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
+            </View>
+
+            <DatePickerInput 
+              label={t('repaymentDate')}
+              value={paidDate}
+              onChange={setPaidDate as any}
+            />
+
+            <View className="mt-4 flex-row gap-4">
+              <Button label={t('cancel')} variant="secondary" className="flex-1" onPress={() => setIsRepaymentOpen(false)} />
+              <Button label={t('save')} className="flex-1" onPress={handleSaveRepayment} isLoading={repaymentMutation.isPending} disabled={!repaymentAmount || !accountId} />
+            </View>
+          </View>
+        )}
       </BottomSheet>
     </Screen>
   );

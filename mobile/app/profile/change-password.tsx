@@ -25,6 +25,7 @@ export default function ChangePasswordScreen() {
       return apiClient.post('/profile/change-password', {
         currentPassword,
         newPassword,
+        confirmPassword,
       });
     },
     onSuccess: async () => {
@@ -45,7 +46,21 @@ export default function ChangePasswordScreen() {
     },
     onError: (error: any) => {
       const code = error.response?.data?.error?.code || 'UNKNOWN';
-      Alert.alert(t('errorOccurred'), getLocalizedError(code, language as any));
+      const details = error.response?.data?.details;
+      let message = getLocalizedError(code, language as any);
+
+      if (code === 'VALIDATION_ERROR' && details) {
+        if (details._errors && details._errors.length > 0) {
+          message = details._errors[0];
+        } else {
+          const field = Object.keys(details).find(k => k !== '_errors' && details[k]?._errors?.length > 0);
+          if (field) {
+            message = details[field]._errors[0];
+          }
+        }
+      }
+
+      Alert.alert(t('errorOccurred'), message);
     }
   });
 
@@ -63,14 +78,14 @@ export default function ChangePasswordScreen() {
 
   return (
     <View className="flex-1 bg-white">
-      <View className="flex-row items-center p-4 border-b border-gray-100 pt-12">
+      <View className="flex-row items-center p-4 border-b border-gray-100 pt-16">
         <TouchableOpacity onPress={() => router.back()} className="mr-4">
           <ChevronLeft size={28} color="#111827" />
         </TouchableOpacity>
         <Text className="text-xl font-bold text-gray-900">{t('changePassword')}</Text>
       </View>
 
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
         <ScrollView className="p-6" keyboardShouldPersistTaps="handled">
           <Input 
             label="Password Saat Ini"

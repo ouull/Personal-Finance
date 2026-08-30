@@ -7,6 +7,8 @@ import {
   StyleSheet,
   TouchableWithoutFeedback,
   Dimensions,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -22,8 +24,11 @@ export function BottomSheet({ visible, onClose, children, height = '70%' }: Bott
   const [translateY] = useState(() => new Animated.Value(SCREEN_HEIGHT));
   const [overlayOpacity] = useState(() => new Animated.Value(0));
 
+  const [showModal, setShowModal] = useState(visible);
+
   useEffect(() => {
     if (visible) {
+      setShowModal(true);
       Animated.parallel([
         Animated.spring(translateY, {
           toValue: 0,
@@ -48,13 +53,18 @@ export function BottomSheet({ visible, onClose, children, height = '70%' }: Bott
           duration: 300,
           useNativeDriver: true,
         }),
-      ]).start();
+      ]).start(() => {
+        setShowModal(false);
+      });
     }
   }, [visible, translateY, overlayOpacity]);
 
   const [panResponder] = useState(() =>
     PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
+      onStartShouldSetPanResponder: () => false,
+      onMoveShouldSetPanResponder: (_, gestureState) => {
+        return gestureState.dy > 5;
+      },
       onPanResponderMove: (_, gestureState) => {
         if (gestureState.dy > 0) {
           translateY.setValue(gestureState.dy);
@@ -74,13 +84,17 @@ export function BottomSheet({ visible, onClose, children, height = '70%' }: Bott
     })
   );
 
-  if (!visible && translateY.interpolate({ inputRange: [0, 1], outputRange: [0, 1] }) === new Animated.Value(SCREEN_HEIGHT)) {
+  if (!showModal) {
     return null;
   }
 
   return (
-    <Modal visible={visible} transparent animationType="none" onRequestClose={onClose}>
-      <View style={styles.overlay}>
+    <Modal visible={showModal} transparent animationType="none" onRequestClose={onClose}>
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={styles.overlay}
+        pointerEvents="box-none"
+      >
         <TouchableWithoutFeedback onPress={onClose}>
           <Animated.View
             style={[
@@ -101,7 +115,7 @@ export function BottomSheet({ visible, onClose, children, height = '70%' }: Bott
           </View>
           {children}
         </Animated.View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
@@ -116,9 +130,9 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.4)',
   },
   sheet: {
-    backgroundColor: 'white',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
     width: '100%',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -2 },

@@ -64,7 +64,7 @@ export async function PATCH(
       if (error.code === "UNAUTHORIZED") {
         return NextResponse.json({ success: false, error: "Not found or unauthorized" }, { status: 404 })
       }
-      return NextResponse.json({ success: false, error: error.message }, { status: 400 })
+      return NextResponse.json({ success: false, error: { code: error.code, message: error.message } }, { status: 400 })
     }
     return NextResponse.json({ success: false, error: "Failed to update transaction" }, { status: 500 })
   }

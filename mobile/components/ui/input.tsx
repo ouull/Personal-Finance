@@ -12,8 +12,8 @@ export function Input({ label, error, leftIcon, className = '', ...props }: Inpu
     <View className={`mb-4 ${className}`}>
       {label && <Text className="text-sm font-medium text-gray-700 mb-1">{label}</Text>}
       <View
-        className={`flex-row items-center border rounded-xl px-4 py-3 bg-gray-50 ${
-          error ? 'border-red-500' : 'border-gray-300'
+        className={`flex-row items-center border rounded-xl px-4 py-3 bg-theme-input ${
+          error ? 'border-red-500' : 'border-theme-border'
         }`}
       >
         {leftIcon && <View className="mr-3">{leftIcon}</View>}

@@ -31,11 +31,12 @@ export async function POST(req: Request) {
       }, { status: 400 })
     }
 
-    const { accountId, borrowerName, amount, lentDate, dueDate, notes } = parsed.data
+    const { accountId, borrowerName, type, amount, lentDate, dueDate, notes } = parsed.data
 
     const loan = await domain.createLoan(user.id, {
       accountId,
       borrowerName,
+      type,
       amount,
       lentDate: new Date(lentDate),
       dueDate: dueDate ? new Date(dueDate) : undefined,

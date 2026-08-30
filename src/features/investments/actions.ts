@@ -31,6 +31,8 @@ export async function createInvestment(data: {
   type: string
   platform?: string
   notes?: string
+  initialAmount?: number
+  accountId?: string
 }) {
   try {
     const userId = await getUserId()
@@ -42,6 +44,9 @@ export async function createInvestment(data: {
     
     return { success: true }
   } catch (error: any) {
+    if (error.message === "Insufficient account balance") {
+      return { success: false, error: "Saldo tidak mencukupi." }
+    }
     console.error("Create investment error:", error)
     return { success: false, error: "Failed to create investment" }
   }
@@ -82,6 +87,9 @@ export async function addInvestmentTransaction(data: {
   } catch (error: any) {
     if (error.message === "Unauthorized" || error.message.startsWith("Unauthorized ")) {
       return { success: false, error: "Unauthorized" }
+    }
+    if (error.message === "Insufficient account balance" || error.message === "Insufficient investment cash balance") {
+      return { success: false, error: "Saldo tidak mencukupi." }
     }
     console.error("Add investment tx error:", error)
     return { success: false, error: "Failed to add investment transaction" }

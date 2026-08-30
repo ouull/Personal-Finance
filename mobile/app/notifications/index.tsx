@@ -61,7 +61,7 @@ export default function NotificationsScreen() {
 
   return (
     <Screen safeArea={false}>
-      <View className="flex-row justify-between items-center px-4 pt-12 pb-4 bg-white border-b border-gray-100">
+      <View className="flex-row justify-between items-center px-4 pt-16 pb-4 bg-white border-b border-gray-100">
         <View className="flex-row items-center">
           <TouchableOpacity onPress={() => router.back()} className="mr-3">
             <ChevronLeft size={28} color="#111827" />
@@ -100,7 +100,7 @@ export default function NotificationsScreen() {
         ))}
         
         {notifications.length === 0 && !isLoading && (
-          <EmptyState title="Belum ada notifikasi." />
+          <EmptyState title={t("noNotifications")} />
         )}
       </ScrollView>
     </Screen>

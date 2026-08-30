@@ -32,6 +32,9 @@ export async function createTransaction(data: TransactionFormValues) {
       return { success: false, error: "Unauthorized" }
     }
     if (error instanceof domain.TransactionError) {
+      if (error.code === "INSUFFICIENT_BALANCE") {
+        return { success: false, error: "Saldo tidak mencukupi." }
+      }
       return { success: false, error: error.message }
     }
     console.error("Create transaction error:", error)
@@ -56,6 +59,9 @@ export async function updateTransaction(id: string, data: TransactionFormValues)
       return { success: false, error: "Unauthorized" }
     }
     if (error instanceof domain.TransactionError) {
+      if (error.code === "INSUFFICIENT_BALANCE") {
+        return { success: false, error: "Saldo tidak mencukupi." }
+      }
       return { success: false, error: error.message }
     }
     console.error("Update transaction error:", error)

@@ -10,10 +10,10 @@ export async function GET(req: Request) {
   try {
     const investments = await domain.getInvestments(user.id)
     const summary = investments.reduce((acc, curr) => ({
-      totalInvested: acc.totalInvested + curr.totalInvested,
-      currentValue: acc.currentValue + curr.currentValue,
+      totalInvested: acc.totalInvested + (curr.status === "ACTIVE" ? curr.totalInvested : 0),
+      currentValue: acc.currentValue + (curr.status === "ACTIVE" ? curr.currentValue : 0),
       realizedGain: acc.realizedGain + curr.realizedGain,
-      unrealizedGain: acc.unrealizedGain + curr.unrealizedGain
+      unrealizedGain: acc.unrealizedGain + (curr.status === "ACTIVE" ? curr.unrealizedGain : 0)
     }), { totalInvested: 0, currentValue: 0, realizedGain: 0, unrealizedGain: 0 });
     
     return NextResponse.json({ success: true, data: { items: investments, summary } })
@@ -38,13 +38,15 @@ export async function POST(req: Request) {
       }, { status: 400 })
     }
 
-    const { name, type, platform, notes } = parsed.data
+    const { name, type, platform, notes, initialAmount, accountId } = parsed.data
 
     const investment = await domain.createInvestment(user.id, {
       name,
       type,
       platform,
-      notes
+      notes,
+      initialAmount,
+      accountId
     })
     
     const serialized = {
@@ -53,10 +55,14 @@ export async function POST(req: Request) {
       currentValue: Number(investment.currentValue),
       unrealizedGain: Number(investment.currentValue) - Number(investment.totalInvested),
       realizedGain: Number(investment.realizedGain),
+      cashBalance: Number(investment.cashBalance),
     }
 
     return NextResponse.json({ success: true, data: serialized }, { status: 201 })
   } catch (error: any) {
+    if (error.message === "Insufficient account balance") {
+      return NextResponse.json({ success: false, error: { code: "INSUFFICIENT_BALANCE", message: error.message } }, { status: 400 })
+    }
     return NextResponse.json({ success: false, error: "Failed to create investment" }, { status: 500 })
   }
 }

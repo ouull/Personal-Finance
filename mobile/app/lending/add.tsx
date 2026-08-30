@@ -7,7 +7,9 @@ import { apiClient } from '../../lib/api/client';
 import { queryKeys } from '../../lib/api/keys';
 import { useTranslation } from '../../lib/i18n';
 import { Button } from '../../components/ui/button';
+import { Bell } from 'lucide-react-native';
 import { Input } from '../../components/ui/input';
+import { DatePickerInput } from '../../components/ui/date-picker-input';
 import { BottomSheet } from '../../components/ui/bottom-sheet';
 import { getLocalizedError } from '../../lib/api/errors';
 
@@ -16,12 +18,14 @@ export default function AddLendingScreen() {
   const router = useRouter();
   const queryClient = useQueryClient();
 
+  const [type, setType] = useState<'BORROWED' | 'LENT'>('BORROWED');
   const [name, setName] = useState('');
+  const [notes, setNotes] = useState('');
   const [amount, setAmount] = useState('');
-  const [type, setType] = useState('LOAN_GIVEN');
   const [accountId, setAccountId] = useState('');
+  const [lentDate, setLentDate] = useState<Date | null>(new Date());
+  const [dueDate, setDueDate] = useState<Date | null>(null);
   
-  const [isTypeSheetOpen, setIsTypeSheetOpen] = useState(false);
   const [isAccountSheetOpen, setIsAccountSheetOpen] = useState(false);
 
   const { data: accountsData } = useQuery({
@@ -32,16 +36,19 @@ export default function AddLendingScreen() {
     },
   });
 
-  const accounts = accountsData?.data?.filter((a: any) => a.status === 'ACTIVE') || [];
+  const accounts = accountsData?.data?.filter((a: any) => a.isActive === true) || [];
   const selectedAccount = accounts.find((a: any) => a.id === accountId);
 
   const mutation = useMutation({
     mutationFn: async () => {
       return apiClient.post('/lending', {
-        name,
-        amount: parseFloat(amount),
         type,
+        borrowerName: name,
+        amount: parseFloat(amount),
         accountId,
+        lentDate: lentDate ? lentDate.toISOString() : new Date().toISOString(),
+        dueDate: dueDate ? dueDate.toISOString() : undefined,
+        notes,
       });
     },
     onSuccess: () => {
@@ -65,19 +72,39 @@ export default function AddLendingScreen() {
   };
 
   return (
-    <View className="flex-1 bg-white">
-      <View className="flex-row items-center p-4 border-b border-gray-100 pt-12">
-        <TouchableOpacity onPress={() => router.back()} className="mr-4">
+    <View className="flex-1 bg-[#FDF8EB]">
+      <View className="flex-row items-center justify-between p-4 pt-16 bg-[#FDF8EB]">
+        <TouchableOpacity onPress={() => router.back()}>
           <ChevronLeft size={28} color="#111827" />
         </TouchableOpacity>
-        <Text className="text-xl font-bold text-gray-900">{t('addLoan')}</Text>
+        <Text className="text-xl font-bold text-gray-900">{t('addDebtOrLoan')}</Text>
+        <TouchableOpacity>
+          <Bell size={24} color="#111827" />
+        </TouchableOpacity>
+      </View>
+      
+      <View className="px-6 py-4 bg-[#FDF8EB]">
+        <View className="flex-row bg-[#EAE5D9] rounded-full p-1 border border-[#D5D0C5]">
+          <TouchableOpacity 
+            className={`flex-1 py-3 rounded-full items-center ${type === 'BORROWED' ? 'bg-black' : 'bg-transparent'}`}
+            onPress={() => setType('BORROWED')}
+          >
+            <Text className={`font-medium ${type === 'BORROWED' ? 'text-white' : 'text-gray-600'}`}>{t('iOwe')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            className={`flex-1 py-3 rounded-full items-center ${type === 'LENT' ? 'bg-black' : 'bg-transparent'}`}
+            onPress={() => setType('LENT')}
+          >
+            <Text className={`font-medium ${type === 'LENT' ? 'text-white' : 'text-gray-600'}`}>{t('owedToMe')}</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
         <ScrollView className="p-6" keyboardShouldPersistTaps="handled">
           <Input 
-            label="Nama / Keterangan"
-            placeholder="Misal: Pinjaman Budi"
+            label={t('personName')}
+            placeholder={t('personNamePlaceholder')}
             value={name}
             onChangeText={setName}
             autoFocus
@@ -85,26 +112,16 @@ export default function AddLendingScreen() {
 
           <Input 
             label={t('amount')}
-            placeholder="0"
+            placeholder="Rp. 0.00"
             keyboardType="numeric"
-            value={amount}
-            onChangeText={setAmount}
+            value={amount ? parseInt(amount, 10).toLocaleString('id-ID') : ''}
+            onChangeText={(text) => setAmount(text.replace(/[^0-9]/g, ''))}
           />
 
           <View className="mb-4">
-            <Text className="text-sm font-medium text-gray-700 mb-1">{t('loanType')}</Text>
+            <Text className="text-sm font-medium text-gray-700 mb-1">{t('sourceAccountLabel')}</Text>
             <TouchableOpacity 
-              className="border border-gray-300 rounded-xl p-4 bg-gray-50 flex-row justify-between items-center"
-              onPress={() => setIsTypeSheetOpen(true)}
-            >
-              <Text className="text-gray-900 text-base">{type === 'LOAN_GIVEN' ? t('loanGiven') : t('loanTaken')}</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View className="mb-4">
-            <Text className="text-sm font-medium text-gray-700 mb-1">{t('account')}</Text>
-            <TouchableOpacity 
-              className="border border-gray-300 rounded-xl p-4 bg-gray-50 flex-row justify-between items-center"
+              className="border border-[#D5D0C5] rounded-xl p-4 bg-[#EAE5D9] flex-row justify-between items-center"
               onPress={() => setIsAccountSheetOpen(true)}
             >
               <Text className={selectedAccount ? 'text-gray-900 text-base' : 'text-gray-500 text-base'}>
@@ -113,9 +130,25 @@ export default function AddLendingScreen() {
             </TouchableOpacity>
           </View>
 
+          <DatePickerInput 
+            label={t('dueDate')}
+            value={dueDate}
+            onChange={setDueDate as any}
+            minimumDate={lentDate || new Date()}
+          />
+          
+          <Input 
+            label={t('notesLabel')}
+            placeholder={t('addDetailsPlaceholder')}
+            value={notes}
+            onChangeText={setNotes}
+            multiline
+          />
+
           <View className="mt-8">
             <Button 
               label={t('save')} 
+              className="rounded-full py-4"
               onPress={handleSave} 
               isLoading={mutation.isPending} 
               disabled={!name.trim() || !amount || !accountId} 
@@ -124,24 +157,6 @@ export default function AddLendingScreen() {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      <BottomSheet visible={isTypeSheetOpen} onClose={() => setIsTypeSheetOpen(false)} height={220}>
-        <View className="p-4">
-          <Text className="text-lg font-bold mb-4">{t('selectLoanType')}</Text>
-          <TouchableOpacity 
-            className="py-4 border-b border-gray-100"
-            onPress={() => { setType('LOAN_GIVEN'); setIsTypeSheetOpen(false); }}
-          >
-            <Text className="text-base text-gray-900">{t('loanGiven')} (Uang Keluar)</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            className="py-4 border-b border-gray-100"
-            onPress={() => { setType('LOAN_TAKEN'); setIsTypeSheetOpen(false); }}
-          >
-            <Text className="text-base text-gray-900">{t('loanTaken')} (Uang Masuk)</Text>
-          </TouchableOpacity>
-        </View>
-      </BottomSheet>
-
       <BottomSheet visible={isAccountSheetOpen} onClose={() => setIsAccountSheetOpen(false)}>
         <View className="p-4">
           <Text className="text-lg font-bold mb-4">{t('selectAccount')}</Text>
@@ -149,13 +164,14 @@ export default function AddLendingScreen() {
             {accounts.map((a: any) => (
               <TouchableOpacity
                 key={a.id}
-                className="py-4 border-b border-gray-100"
+                className="py-4 border-b border-gray-100 flex-row justify-between items-center"
                 onPress={() => {
                   setAccountId(a.id);
                   setIsAccountSheetOpen(false);
                 }}
               >
-                <Text className="text-base">{a.name}</Text>
+                <Text className="text-base text-gray-900">{a.name}</Text>
+                <Text className="text-sm font-medium text-gray-500">Rp {Number(a.balance || 0).toLocaleString('id-ID')}</Text>
               </TouchableOpacity>
             ))}
           </ScrollView>

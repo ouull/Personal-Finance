@@ -9,12 +9,18 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json()
+    
+    // Verifikasi password saat ini terlebih dahulu sebelum validasi input baru
+    if (body.currentPassword) {
+      await domain.verifyCurrentPassword(user.id, body.currentPassword)
+    }
+
     const parsed = changePasswordSchema.safeParse(body)
     
     if (!parsed.success) {
       return NextResponse.json({ 
         success: false, 
-        error: "Validation failed", 
+        error: { code: "VALIDATION_ERROR", message: "Validation failed" },
         details: parsed.error.format() 
       }, { status: 400 })
     }
@@ -27,7 +33,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: "Not found" }, { status: 404 })
     }
     if (error.message === "Incorrect current password") {
-      return NextResponse.json({ success: false, error: "Incorrect current password" }, { status: 403 })
+      return NextResponse.json({ success: false, error: { code: "INCORRECT_PASSWORD", message: "Password saat ini salah." } }, { status: 403 })
     }
     return NextResponse.json({ success: false, error: "Failed to change password" }, { status: 500 })
   }

@@ -77,6 +77,7 @@ export async function seedUserFinancialData(userId: string, transactionClient?: 
 
     // DEFAULT INCOME
     { name: "Gaji", slug: "salary", type: "INCOME", icon: "Wallet", color: "emerald" },
+    { name: "Lainnya", slug: "other_income", type: "INCOME", icon: "MoreHorizontal", color: "gray" },
   ]
 
   const executeSeed = async (prismaTx: any) => {

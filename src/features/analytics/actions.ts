@@ -35,6 +35,7 @@ export async function getNetWorth() {
       where: { userId, status: "ACTIVE" }
     })
     const totalInvestments = investments.reduce((sum: number, inv: any) => sum + Number(inv.currentValue), 0)
+    const investedCapital = investments.reduce((sum: number, inv: any) => sum + Number(inv.totalInvested), 0)
 
     const netWorth = totalCash + totalReceivables + totalInvestments
 
@@ -44,7 +45,8 @@ export async function getNetWorth() {
         netWorth,
         totalCash,
         totalReceivables,
-        totalInvestments
+        totalInvestments,
+        investedCapital
       }
     }
   } catch (error: any) {

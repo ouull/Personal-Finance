@@ -8,6 +8,7 @@ import { queryKeys } from '../../lib/api/keys';
 import { useTranslation } from '../../lib/i18n';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
+import { DatePickerInput } from '../../components/ui/date-picker-input';
 import { getLocalizedError } from '../../lib/api/errors';
 
 export default function AddGoalScreen() {
@@ -18,8 +19,8 @@ export default function AddGoalScreen() {
   const [name, setName] = useState('');
   const [targetAmount, setTargetAmount] = useState('');
   const [currentAmount, setCurrentAmount] = useState('');
-  // Target date string YYYY-MM-DD
-  const [targetDate, setTargetDate] = useState('');
+  // Target date
+  const [targetDate, setTargetDate] = useState<Date | null>(null);
 
   const mutation = useMutation({
     mutationFn: async () => {
@@ -27,7 +28,7 @@ export default function AddGoalScreen() {
         name,
         targetAmount: parseFloat(targetAmount),
         currentAmount: currentAmount ? parseFloat(currentAmount) : 0,
-        targetDate: targetDate ? new Date(targetDate).toISOString() : undefined,
+        deadline: targetDate ? targetDate.toISOString() : undefined,
       });
     },
     onSuccess: () => {
@@ -50,45 +51,44 @@ export default function AddGoalScreen() {
   };
 
   return (
-    <View className="flex-1 bg-white">
-      <View className="flex-row items-center p-4 border-b border-gray-100 pt-12">
+    <View className="flex-1 bg-theme-bg">
+      <View className="flex-row items-center p-4 border-b border-theme-border pt-16">
         <TouchableOpacity onPress={() => router.back()} className="mr-4">
           <ChevronLeft size={28} color="#111827" />
         </TouchableOpacity>
         <Text className="text-xl font-bold text-gray-900">{t('addGoal')}</Text>
       </View>
 
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
-        <ScrollView className="p-6" keyboardShouldPersistTaps="handled">
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+        <ScrollView style={{ padding: 24 }} keyboardShouldPersistTaps="handled">
           <Input 
             label={t('goalName')}
             placeholder="Misal: Beli Mobil"
             value={name}
             onChangeText={setName}
-            autoFocus
           />
 
           <Input 
             label={t('targetAmount')}
             placeholder="0"
             keyboardType="numeric"
-            value={targetAmount}
-            onChangeText={setTargetAmount}
+            value={targetAmount ? parseInt(targetAmount, 10).toLocaleString('id-ID') : ''}
+            onChangeText={(text) => setTargetAmount(text.replace(/[^0-9]/g, ''))}
           />
 
           <Input 
             label={`${t('currentAmount')} (Opsional)`}
             placeholder="0"
             keyboardType="numeric"
-            value={currentAmount}
-            onChangeText={setCurrentAmount}
+            value={currentAmount ? parseInt(currentAmount, 10).toLocaleString('id-ID') : ''}
+            onChangeText={(text) => setCurrentAmount(text.replace(/[^0-9]/g, ''))}
           />
 
-          <Input 
+          <DatePickerInput 
             label={t('targetDateOptional')}
-            placeholder="2027-12-31"
             value={targetDate}
-            onChangeText={setTargetDate}
+            minimumDate={new Date()}
+            onChange={setTargetDate as any}
           />
 
           <View className="mt-8">
@@ -96,7 +96,8 @@ export default function AddGoalScreen() {
               label={t('save')} 
               onPress={handleSave} 
               isLoading={mutation.isPending} 
-              disabled={!name.trim() || !targetAmount} 
+              disabled={!name.trim() || !targetAmount}
+              className="rounded-full"
             />
           </View>
         </ScrollView>

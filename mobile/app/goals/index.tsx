@@ -2,12 +2,11 @@ import React, { useState } from 'react';
 import { View, Text, ScrollView, RefreshControl, TouchableOpacity, Alert } from 'react-native';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
-import { ChevronLeft, Plus, Trash2 } from 'lucide-react-native';
+import { ChevronLeft, Plus, Trash2, Target } from 'lucide-react-native';
 import { apiClient } from '../../lib/api/client';
 import { queryKeys } from '../../lib/api/keys';
 import { useTranslation } from '../../lib/i18n';
 import { Screen } from '../../components/ui/screen';
-import { Card } from '../../components/ui/card';
 import { AmountText } from '../../components/ui/amount-text';
 import { EmptyState } from '../../components/ui/empty-state';
 import { BottomSheet } from '../../components/ui/bottom-sheet';
@@ -62,68 +61,117 @@ export default function GoalsScreen() {
   const confirmDelete = () => {
     if (!selectedGoal) return;
     Alert.alert(
-      'Hapus Tujuan',
+      t('deleteGoal'),
       'Apakah Anda yakin ingin menghapus tujuan keuangan ini?',
       [
         { text: t('cancel'), style: 'cancel' },
-        { text: 'Hapus', style: 'destructive', onPress: () => deleteMutation.mutate(selectedGoal.id) },
+        { text: t('delete'), style: 'destructive', onPress: () => deleteMutation.mutate(selectedGoal.id) },
       ]
     );
   };
 
+  const totalSaved = goals.reduce((sum: number, goal: any) => sum + Number(goal.currentAmount || 0), 0);
+  const totalTarget = goals.reduce((sum: number, goal: any) => sum + Number(goal.targetAmount || 0), 0);
+  const overallProgress = totalTarget > 0 ? Math.min(Math.round((totalSaved / totalTarget) * 100), 100) : 0;
+
   return (
     <Screen safeArea={false}>
-      <View className="flex-row justify-between items-center px-4 pt-12 pb-4 bg-white border-b border-gray-100">
+      <View className="flex-row justify-between items-center px-4 pt-16 pb-4 bg-theme-bg">
         <View className="flex-row items-center">
           <TouchableOpacity onPress={() => router.back()} className="mr-3">
             <ChevronLeft size={28} color="#111827" />
           </TouchableOpacity>
-          <Text className="text-xl font-bold text-gray-900">{t('goals')}</Text>
         </View>
         <TouchableOpacity 
-          className="bg-blue-100 p-2 rounded-full"
+          className="bg-black p-2 rounded-full"
           onPress={() => router.push('/goals/add')}
         >
-          <Plus color="#2563eb" size={20} />
+          <Plus color="#ffffff" size={20} />
         </TouchableOpacity>
       </View>
 
       <ScrollView
-        className="flex-1 px-4 pt-6 bg-gray-50"
+        className="flex-1 px-4 pt-2 bg-theme-bg"
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refetch} />}
       >
+        {/* Top Summary Card */}
+        <View className="bg-[#EAE5D9] rounded-[24px] p-5 mb-6">
+          <Text className="text-gray-500 font-medium mb-1">{t('totalSavedGoals')}</Text>
+          <AmountText amount={totalSaved} showSign={false} className="text-3xl font-bold text-gray-900" />
+          
+          <View className="h-[1px] bg-[#D5D0C5] my-4" />
+          
+          <View className="flex-row justify-between mb-2">
+            <View>
+              <Text className="text-gray-500 font-medium text-xs mb-1">{t('totalGoalTarget')}</Text>
+              <AmountText amount={totalTarget} showSign={false} className="font-semibold text-gray-900" />
+            </View>
+            <View className="items-end">
+              <Text className="text-gray-500 font-medium text-xs mb-1 uppercase tracking-wider">{t('overallProgress')}</Text>
+              <Text className="font-semibold text-gray-900">{overallProgress}%</Text>
+            </View>
+          </View>
+          
+          <View className="h-1.5 bg-[#D5D0C5] rounded-full w-full overflow-hidden mt-1">
+            <View 
+              className="h-full bg-[#3F2F1B] rounded-full" 
+              style={{ width: `${overallProgress}%` }} 
+            />
+          </View>
+        </View>
+
+        <Text className="text-lg font-bold text-gray-900 mb-4">{t('activeGoals')}</Text>
+
         {goals.map((goal: any) => {
-          const progressPercentage = Math.min(Math.round(goal.progress * 100), 100);
+          const progressPercentage = Math.min(Math.round((goal.currentAmount / goal.targetAmount) * 100) || 0, 100);
+          
           return (
-            <TouchableOpacity key={goal.id} onPress={() => handleOptions(goal)}>
-              <Card className="mb-4 bg-white border-0 shadow-sm">
-                <View className="flex-row justify-between items-start mb-2">
-                  <View>
-                    <Text className="font-bold text-gray-900 text-lg">{goal.name}</Text>
-                    {goal.targetDate && (
-                      <Text className="text-gray-500 text-xs">Target: {new Date(goal.targetDate).toLocaleDateString()}</Text>
-                    )}
+            <TouchableOpacity 
+              key={goal.id} 
+              onPress={() => router.push(`/goals/${goal.id}`)} 
+              onLongPress={() => handleOptions(goal)}
+              activeOpacity={0.8}
+            >
+              <View className="mb-4 bg-[#EAE5D9] rounded-[24px] p-5">
+                <View className="flex-row justify-between items-start mb-4">
+                  <View className="flex-row items-center">
+                    <View className="w-10 h-10 rounded-full bg-[#FDF8EB] items-center justify-center mr-3">
+                      <Target color="#3F2F1B" size={20} />
+                    </View>
+                    <Text className="font-semibold text-gray-900 text-base">{goal.name}</Text>
                   </View>
-                  <Text className="text-gray-900 font-bold">{progressPercentage}%</Text>
+                  <Text className="text-xs text-gray-600 font-medium mt-1">
+                    {t('target')}: {goal.deadline ? new Date(goal.deadline).toLocaleDateString(language === 'id' ? 'id-ID' : 'en-US', { month: 'short', year: 'numeric' }) : t('ongoing')}
+                  </Text>
                 </View>
                 
-                {/* Progress Bar */}
-                <View className="h-2 w-full bg-gray-100 rounded-full my-3 overflow-hidden">
-                  <View className="h-full bg-blue-600 rounded-full" style={{ width: `${progressPercentage}%` }} />
+                <View className="flex-row items-end mb-2">
+                  <AmountText amount={goal.currentAmount} showSign={false} className="font-bold text-gray-900 text-sm" />
+                  <AmountText amount={goal.targetAmount} showSign={false} className="text-gray-500 text-xs ml-1 mb-[1px]" prefix="/ Rp" />
                 </View>
 
-                <View className="flex-row justify-between mt-1">
-                  <AmountText amount={goal.currentAmount} className="text-sm font-semibold text-gray-900" showSign={false} />
-                  <AmountText amount={goal.targetAmount} className="text-sm text-gray-500" showSign={false} />
+                {/* Progress Bar */}
+                <View className="h-1.5 bg-[#D5D0C5] rounded-full w-full overflow-hidden">
+                  <View 
+                    className="h-full bg-[#3F2F1B] rounded-full" 
+                    style={{ width: `${progressPercentage}%` }} 
+                  />
                 </View>
-              </Card>
+                
+                <TouchableOpacity 
+                  className="border border-gray-900 rounded-full py-2.5 mt-5 items-center justify-center"
+                  onPress={() => router.push(`/goals/${goal.id}`)}
+                >
+                  <Text className="text-gray-900 font-semibold">{t('addFunds')}</Text>
+                </TouchableOpacity>
+              </View>
             </TouchableOpacity>
           );
         })}
         
         {goals.length === 0 && !isLoading && (
-          <EmptyState title="Belum ada tujuan keuangan." actionLabel="Tambah Tujuan" onAction={() => router.push('/goals/add')} />
+          <EmptyState title={t('noGoals')} actionLabel={t('addGoal')} onAction={() => router.push('/goals/add')} />
         )}
 
         <View className="h-10" />

@@ -23,8 +23,8 @@ export default async function InvestmentsPage() {
   const investments = investmentsResult.success ? investmentsResult.data || [] : []
   const accounts = accountsResult.success ? accountsResult.data || [] : []
 
-  const totalInvested = investments.reduce((sum: number, inv: any) => sum + inv.totalInvested, 0)
-  const currentValue = investments.reduce((sum: number, inv: any) => sum + inv.currentValue, 0)
+  const totalInvested = investments.reduce((sum: number, inv: any) => sum + (inv.status === "ACTIVE" ? inv.totalInvested : 0), 0)
+  const currentValue = investments.reduce((sum: number, inv: any) => sum + (inv.status === "ACTIVE" ? inv.currentValue : 0), 0)
   const totalGainLoss = currentValue - totalInvested
   const totalRealizedGain = investments.reduce((sum: number, inv: any) => sum + inv.realizedGain, 0)
   

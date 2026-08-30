@@ -77,86 +77,91 @@ export default function InvestmentDetailScreen() {
 
   return (
     <Screen safeArea={false}>
-      <View className="flex-row justify-between items-center px-4 pt-12 pb-4 bg-blue-600">
+      <View className="flex-row justify-between items-center px-4 pt-16 pb-4 bg-theme-bg">
         <View className="flex-row items-center">
           <TouchableOpacity onPress={() => router.back()} className="mr-3">
-            <ChevronLeft size={28} color="white" />
+            <ChevronLeft size={28} color="#111827" />
           </TouchableOpacity>
-          <Text className="text-xl font-bold text-white">{investment.name}</Text>
+          <Text className="text-xl font-bold text-gray-900">{investment.name}</Text>
         </View>
-        <TouchableOpacity onPress={handleOpenUpdate}>
-          <Edit2 size={20} color="white" />
-        </TouchableOpacity>
+        {investment.totalInvested > 0 && (
+          <TouchableOpacity onPress={handleOpenUpdate} className="bg-theme-input p-2 rounded-full">
+            <Edit2 size={18} color="#111827" />
+          </TouchableOpacity>
+        )}
       </View>
 
       <ScrollView
-        className="flex-1 bg-gray-50 px-4 pt-6"
+        className="flex-1 bg-theme-bg px-4 pt-6"
         showsVerticalScrollIndicator={false}
         refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refetch} />}
       >
-        <Card className="mb-6 bg-white border-0 shadow-sm items-center py-6">
-          <Text className="text-gray-500 font-medium mb-1">{t('currentValue')}</Text>
-          <AmountText amount={investment.currentValue} className="text-gray-900 text-4xl font-bold mb-6" showSign={false} />
+        <Card className="mb-6 bg-theme-card border border-theme-border rounded-[24px] shadow-none items-center py-8">
+          <Text className="text-gray-500 font-medium mb-2">{t('currentValue')}</Text>
+          <AmountText amount={investment.currentValue} className="text-gray-900 text-4xl font-extrabold mb-6" showSign={false} />
           
-          <View className="flex-row w-full justify-around border-t border-gray-100 pt-4">
-            <View className="items-center">
-              <Text className="text-gray-500 text-xs mb-1">{t('totalInvestment')}</Text>
-              <AmountText amount={investment.totalInvested} className="text-gray-900 font-semibold" showSign={false} />
+          <View className="flex-row w-full justify-between border-t border-theme-border pt-6 px-1">
+            <View className="flex-1 items-center px-1">
+              <Text className="text-gray-500 text-[10px] mb-1 uppercase tracking-wider text-center" numberOfLines={2}>{t('totalInvestment')}</Text>
+              <AmountText amount={investment.totalInvested} className="text-gray-900 font-bold text-[13px]" showSign={false} numberOfLines={1} adjustsFontSizeToFit />
             </View>
-            <View className="items-center border-l border-r border-gray-100 px-4">
-              <Text className="text-gray-500 text-xs mb-1">{t('unrealizedGain')}</Text>
-              <AmountText amount={investment.unrealizedGain} type={investment.unrealizedGain >= 0 ? 'INCOME' : 'EXPENSE'} className="font-semibold" />
+            <View className="flex-1 items-center border-l border-r border-theme-border px-1">
+              <Text className="text-gray-500 text-[10px] mb-1 uppercase tracking-wider text-center" numberOfLines={2}>{t('unrealizedGain')}</Text>
+              <AmountText amount={investment.unrealizedGain} type={investment.unrealizedGain >= 0 ? 'INCOME' : 'EXPENSE'} className="font-bold text-[13px]" numberOfLines={1} adjustsFontSizeToFit />
             </View>
-            <View className="items-center">
-              <Text className="text-gray-500 text-xs mb-1">{t('realizedGain')}</Text>
-              <AmountText amount={investment.realizedGain} type={investment.realizedGain >= 0 ? 'INCOME' : 'EXPENSE'} className="font-semibold" />
+            <View className="flex-1 items-center px-1">
+              <Text className="text-gray-500 text-[10px] mb-1 uppercase tracking-wider text-center" numberOfLines={2}>{t('realizedGain')}</Text>
+              <AmountText amount={investment.realizedGain} type={investment.realizedGain >= 0 ? 'INCOME' : 'EXPENSE'} className="font-bold text-[13px]" numberOfLines={1} adjustsFontSizeToFit />
             </View>
           </View>
+          
+          {investment.cashBalance > 0 && (
+            <View className="w-full mt-6 pt-6 border-t border-theme-border items-center">
+              <Text className="text-gray-500 text-xs mb-1 uppercase tracking-wider">Saldo Mengendap (Cash Balance)</Text>
+              <AmountText amount={investment.cashBalance} className="text-gray-900 font-bold text-lg" showSign={false} />
+            </View>
+          )}
         </Card>
 
-        <View className="flex-row flex-wrap justify-between mb-8">
-          <Button 
-            label={t('buy')} 
-            className="w-[48%] mb-3" 
-            onPress={() => router.push(`/investments/transaction?id=${investment.id}&type=BUY`)} 
-          />
-          <Button 
-            label={t('sell')} 
-            variant="secondary" 
-            className="w-[48%] mb-3" 
+        <View className="flex-row flex-wrap justify-between mb-8 gap-4 px-2">
+          <TouchableOpacity 
+            className="flex-1 py-4 bg-red-100 rounded-full items-center justify-center"
             onPress={() => router.push(`/investments/transaction?id=${investment.id}&type=SELL`)} 
-          />
-          <Button 
-            label={t('deposit')} 
-            variant="outline" 
-            className="w-[48%]" 
-            onPress={() => router.push(`/investments/transaction?id=${investment.id}&type=DEPOSIT`)} 
-          />
-          <Button 
-            label={t('withdraw')} 
-            variant="outline" 
-            className="w-[48%]" 
-            onPress={() => router.push(`/investments/transaction?id=${investment.id}&type=WITHDRAW`)} 
-          />
+          >
+            <Text className="text-red-600 font-bold text-base">{t('sell')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            className="flex-1 py-4 bg-green-100 rounded-full items-center justify-center"
+            onPress={() => router.push(`/investments/transaction?id=${investment.id}&type=BUY`)} 
+          >
+            <Text className="text-green-700 font-bold text-base">{t('buy')}</Text>
+          </TouchableOpacity>
         </View>
 
         <SectionHeader title="Riwayat Transaksi" />
-        <Card className="mb-8 p-0">
+        <View className="mb-8 mt-2">
           {investment.transactions?.length > 0 ? (
-            investment.transactions.map((tx: any, index: number) => (
-              <View key={tx.id} className={`flex-row justify-between items-center p-4 ${index !== investment.transactions.length -1 ? 'border-b border-gray-100' : ''}`}>
-                <View>
-                  <Text className="font-semibold text-gray-900">{tx.type}</Text>
-                  <Text className="text-xs text-gray-500">{new Date(tx.date).toLocaleDateString()}</Text>
-                  {tx.shares > 0 && <Text className="text-xs text-gray-500">{tx.shares} unit @ <AmountText amount={tx.price || 0} showSign={false} /></Text>}
+            investment.transactions.map((tx: any, index: number) => {
+              const isBuy = tx.type === 'BUY';
+              const isSell = tx.type === 'SELL';
+              const bgClass = isBuy ? 'bg-green-50 border-green-100' : isSell ? 'bg-red-50 border-red-100' : 'bg-theme-card border-theme-border';
+              const textClass = isBuy ? 'text-green-800' : isSell ? 'text-red-800' : 'text-gray-900';
+              
+              return (
+                <View key={tx.id} className={`flex-row justify-between items-center p-5 mb-3 rounded-2xl border ${bgClass}`}>
+                  <View>
+                    <Text className={`font-bold mb-1 ${textClass}`}>{isBuy ? 'Beli' : isSell ? 'Jual' : tx.type}</Text>
+                    <Text className={`text-xs ${isBuy ? 'text-green-600' : isSell ? 'text-red-600' : 'text-gray-500'}`}>{new Date(tx.date).toLocaleDateString()}</Text>
+                    {tx.shares > 0 && <Text className={`text-xs mt-1 font-medium ${isBuy ? 'text-green-700' : isSell ? 'text-red-700' : 'text-gray-600'}`}>{tx.shares} unit @ <AmountText amount={tx.price || 0} showSign={false} className="text-xs" /></Text>}
+                  </View>
+                  <AmountText amount={tx.amount} className={`font-extrabold text-base ${textClass}`} showSign={false} />
                 </View>
-                <AmountText amount={tx.amount} type={tx.type === 'BUY' || tx.type === 'WITHDRAW' ? 'EXPENSE' : 'INCOME'} className="font-bold" />
-              </View>
-            ))
+              );
+            })
           ) : (
-            <Text className="text-gray-500 italic p-4">{t('noTransactionsYet')}</Text>
+            <Text className="text-gray-500 italic p-4 text-center">{t('noTransactionsYet')}</Text>
           )}
-        </Card>
+        </View>
         
         <View className="h-10" />
       </ScrollView>
@@ -170,8 +175,8 @@ export default function InvestmentDetailScreen() {
           <Input 
             placeholder="0"
             keyboardType="numeric"
-            value={newValue}
-            onChangeText={setNewValue}
+            value={newValue ? parseInt(newValue, 10).toLocaleString('id-ID') : ''}
+            onChangeText={(text) => setNewValue(text.replace(/[^0-9]/g, ''))}
             autoFocus
           />
           <View className="mt-4 flex-row gap-4">

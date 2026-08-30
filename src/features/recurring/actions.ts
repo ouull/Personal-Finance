@@ -52,6 +52,22 @@ export async function createRecurringPayment(data: {
   }
 }
 
+export async function updateRecurringPayment(id: string, data: any) {
+  try {
+    const userId = await getUserId()
+    
+    await domain.updateRecurringPayment(userId, id, data)
+
+    revalidatePath("/")
+    revalidatePath("/recurring")
+    
+    return { success: true }
+  } catch (error: any) {
+    console.error("Update recurring payment error:", error)
+    return { success: false, error: "Failed to update recurring payment" }
+  }
+}
+
 export async function processRecurringPayment(id: string) {
   try {
     const userId = await getUserId()

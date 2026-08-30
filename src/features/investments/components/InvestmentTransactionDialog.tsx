@@ -37,6 +37,7 @@ interface Investment {
   id: string
   name: string
   currentValue: number
+  cashBalance: number
 }
 
 interface InvestmentTransactionDialogProps {
@@ -59,8 +60,16 @@ export function InvestmentTransactionDialog({ accounts, investment }: Investment
   })
 
   async function onSubmit(data: InvestmentTransactionFormValues) {
-    if ((data.type === "SELL" || data.type === "WITHDRAW") && data.amount > investment.currentValue) {
+    if (data.type === "SELL" && data.amount > investment.currentValue) {
       toast.error("Cannot sell more than current value")
+      return
+    }
+    if (data.type === "WITHDRAW" && data.amount > investment.cashBalance) {
+      toast.error("Cannot withdraw more than cash balance")
+      return
+    }
+    if ((data.type === "BUY" || data.type === "WITHDRAW") && !data.accountId) {
+      toast.error("Account is required for this transaction type")
       return
     }
 
@@ -82,7 +91,7 @@ export function InvestmentTransactionDialog({ accounts, investment }: Investment
     }
   }
 
-  const txTypes = ["BUY", "SELL", "DEPOSIT", "WITHDRAW", "DIVIDEND", "INTEREST", "FEE"]
+  const txTypes = ["BUY", "SELL", "WITHDRAW", "DIVIDEND", "INTEREST", "FEE"]
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -139,8 +148,11 @@ export function InvestmentTransactionDialog({ accounts, investment }: Investment
             {errors.amount && <p className="text-sm text-red-500">{errors.amount.message}</p>}
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="accountId">Related Account (Optional)</Label>
+          {watch("type") !== "SELL" && (
+            <div className="space-y-2">
+              <Label htmlFor="accountId">
+                Related Account {(watch("type") === "BUY" || watch("type") === "WITHDRAW") ? "" : "(Optional)"}
+              </Label>
             <Select 
               value={watch("accountId") || ""}
               onValueChange={(val) => setValue("accountId", val as any, { shouldValidate: true })} 
@@ -162,8 +174,9 @@ export function InvestmentTransactionDialog({ accounts, investment }: Investment
                 ))}
               </SelectContent>
             </Select>
-            <p className="text-xs text-muted-foreground">Select the bank account where money was withdrawn from or deposited to.</p>
+            {errors.accountId && <p className="text-sm text-red-500">{errors.accountId.message as string}</p>}
           </div>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="date">Date</Label>

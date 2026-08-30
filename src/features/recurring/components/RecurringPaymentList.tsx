@@ -115,6 +115,7 @@ export function RecurringPaymentList({ payments, accounts, categories }: Recurri
                     <span className="text-xs font-medium text-slate-500">{payment.billingCycle}</span>
                   </div>
                 </div>
+                <RecurringPaymentDialog accounts={accounts} categories={categories} payment={payment} />
               </div>
 
               <div className="mt-4 space-y-3 flex-1">

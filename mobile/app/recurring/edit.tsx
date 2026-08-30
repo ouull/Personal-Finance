@@ -12,6 +12,7 @@ import { Input } from '../../components/ui/input';
 import { BottomSheet } from '../../components/ui/bottom-sheet';
 import { getLocalizedError } from '../../lib/api/errors';
 import { EmptyState } from '../../components/ui/empty-state';
+import { DatePickerInput } from '../../components/ui/date-picker-input';
 
 export default function EditRecurringScreen() {
   const { id } = useLocalSearchParams();
@@ -21,9 +22,10 @@ export default function EditRecurringScreen() {
 
   const [name, setName] = useState('');
   const [amount, setAmount] = useState('');
-  const [frequency, setFrequency] = useState('MONTHLY');
+  const [billingCycle, setBillingCycle] = useState('MONTHLY');
   const [status, setStatus] = useState('ACTIVE');
-  
+  const [nextDueDate, setNextDueDate] = useState<Date | null>(null);
+
   const [isFreqSheetOpen, setIsFreqSheetOpen] = useState(false);
   const [isStatusSheetOpen, setIsStatusSheetOpen] = useState(false);
 
@@ -40,8 +42,11 @@ export default function EditRecurringScreen() {
       const rp = data.data;
       setName(rp.name);
       setAmount(rp.amount.toString());
-      setFrequency(rp.frequency);
+      setBillingCycle(rp.billingCycle || 'MONTHLY');
       setStatus(rp.status);
+      if (rp.nextDueDate) {
+        setNextDueDate(new Date(rp.nextDueDate));
+      }
     }
   }, [data]);
 
@@ -50,8 +55,9 @@ export default function EditRecurringScreen() {
       return apiClient.patch(`/recurring/${id}`, {
         name,
         amount: parseFloat(amount),
-        frequency,
+        billingCycle,
         status,
+        nextDueDate: nextDueDate ? nextDueDate.toISOString() : undefined,
       });
     },
     onSuccess: () => {
@@ -91,44 +97,51 @@ export default function EditRecurringScreen() {
 
   return (
     <View className="flex-1 bg-white">
-      <View className="flex-row items-center p-4 border-b border-gray-100 pt-12">
+      <View className="flex-row items-center p-4 border-b border-gray-100 pt-16">
         <TouchableOpacity onPress={() => router.back()} className="mr-4">
           <ChevronLeft size={28} color="#111827" />
         </TouchableOpacity>
         <Text className="text-xl font-bold text-gray-900">{t('editRecurring')}</Text>
       </View>
 
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
         <ScrollView className="p-6" keyboardShouldPersistTaps="handled">
-          <Input 
-            label="Nama / Keterangan"
-            placeholder="Misal: Tagihan Listrik"
+          <Input
+            label={t("subName")}
+            placeholder="Misal: Netflix, Spotify Premium"
             value={name}
             onChangeText={setName}
             autoFocus
           />
 
-          <Input 
+          <Input
             label={t('amount')}
             placeholder="0"
             keyboardType="numeric"
-            value={amount}
-            onChangeText={setAmount}
+            value={amount ? parseInt(amount, 10).toLocaleString('id-ID') : ''}
+            onChangeText={(text) => setAmount(text.replace(/[^0-9]/g, ''))}
+          />
+
+          <DatePickerInput
+            label={t('nextDueDateLong')}
+            value={nextDueDate}
+            minimumDate={new Date()}
+            onChange={setNextDueDate as any}
           />
 
           <View className="mb-4">
-            <Text className="text-sm font-medium text-gray-700 mb-1">{t('frequency')}</Text>
-            <TouchableOpacity 
+            <Text className="text-sm font-medium text-gray-700 mb-1">{t('frequency')} (Siklus Tagihan)</Text>
+            <TouchableOpacity
               className="border border-gray-300 rounded-xl p-4 bg-gray-50 flex-row justify-between items-center"
               onPress={() => setIsFreqSheetOpen(true)}
             >
-              <Text className="text-gray-900 text-base">{frequency}</Text>
+              <Text className="text-gray-900 text-base">{billingCycle}</Text>
             </TouchableOpacity>
           </View>
 
           <View className="mb-4">
             <Text className="text-sm font-medium text-gray-700 mb-1">{t('status')}</Text>
-            <TouchableOpacity 
+            <TouchableOpacity
               className="border border-gray-300 rounded-xl p-4 bg-gray-50 flex-row justify-between items-center"
               onPress={() => setIsStatusSheetOpen(true)}
             >
@@ -137,11 +150,11 @@ export default function EditRecurringScreen() {
           </View>
 
           <View className="mt-8">
-            <Button 
-              label={t('save')} 
-              onPress={handleSave} 
-              isLoading={mutation.isPending} 
-              disabled={!name.trim() || !amount} 
+            <Button
+              label={t('save')}
+              onPress={handleSave}
+              isLoading={mutation.isPending}
+              disabled={!name.trim() || !amount}
             />
           </View>
         </ScrollView>
@@ -150,23 +163,23 @@ export default function EditRecurringScreen() {
       <BottomSheet visible={isFreqSheetOpen} onClose={() => setIsFreqSheetOpen(false)} height={320}>
         <View className="p-4">
           <Text className="text-lg font-bold mb-4">{t('selectFrequency')}</Text>
-          {['DAILY', 'WEEKLY', 'MONTHLY', 'YEARLY'].map((freq) => (
-            <TouchableOpacity 
+          {['WEEKLY', 'MONTHLY', 'QUARTERLY', 'YEARLY'].map((freq) => (
+            <TouchableOpacity
               key={freq}
               className="py-4 border-b border-gray-100"
-              onPress={() => { setFrequency(freq); setIsFreqSheetOpen(false); }}
+              onPress={() => { setBillingCycle(freq); setIsFreqSheetOpen(false); }}
             >
               <Text className="text-base text-gray-900">{freq}</Text>
             </TouchableOpacity>
           ))}
         </View>
       </BottomSheet>
-      
+
       <BottomSheet visible={isStatusSheetOpen} onClose={() => setIsStatusSheetOpen(false)} height={220}>
         <View className="p-4">
           <Text className="text-lg font-bold mb-4">{t('selectStatus')}</Text>
           {['ACTIVE', 'PAUSED'].map((st) => (
-            <TouchableOpacity 
+            <TouchableOpacity
               key={st}
               className="py-4 border-b border-gray-100"
               onPress={() => { setStatus(st); setIsStatusSheetOpen(false); }}

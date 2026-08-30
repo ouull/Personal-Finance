@@ -9,7 +9,20 @@ export const recurringPaymentSchema = z.object({
   billingCycle: z.enum(["WEEKLY", "MONTHLY", "QUARTERLY", "YEARLY"]),
   nextDueDate: z.string().or(z.date()).transform((val) => new Date(val)),
   reminderDays: z.coerce.number().min(0).default(3),
+  status: z.enum(["ACTIVE", "PAUSED", "CANCELLED"]).optional(),
   notes: z.string().optional()
+}).refine(data => {
+  if (data.nextDueDate) {
+    const nextDueDate = new Date(data.nextDueDate);
+    nextDueDate.setHours(0, 0, 0, 0);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return nextDueDate >= today;
+  }
+  return true;
+}, {
+  message: "Tenggat waktu tidak boleh di masa lampau",
+  path: ["nextDueDate"]
 })
 
 export type RecurringPaymentFormValues = z.infer<typeof recurringPaymentSchema>

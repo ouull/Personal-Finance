@@ -19,9 +19,10 @@ export async function getDashboardStats(userId: string) {
   const investments = await db.investment.findMany({
     where: { userId, status: "ACTIVE" }
   })
-  const investedCapital = investments.reduce((sum, inv) => sum + Number(inv.currentValue), 0)
+  const investedCapital = investments.reduce((sum, inv) => sum + Number(inv.totalInvested), 0)
+  const currentInvestmentValue = investments.reduce((sum, inv) => sum + Number(inv.currentValue), 0)
 
-  const netWorth = availableCash + receivables + investedCapital
+  const netWorth = availableCash + receivables + currentInvestmentValue
 
   // 4. Monthly Income and Expense
   const startOfMonth = new Date()
@@ -61,19 +62,21 @@ export async function getDashboardStats(userId: string) {
   const topSpendingCategory = Object.values(spendingByCategory)
     .sort((a, b) => b.value - a.value)[0] || null
 
-  // 5. Upcoming Payments
+  // 5. Upcoming Payments (Next 30 days + overdue)
   const today = new Date()
   today.setHours(0, 0, 0, 0)
-  const nextWeek = new Date(today)
-  nextWeek.setDate(nextWeek.getDate() + 7)
+  const nextMonth = new Date(today)
+  nextMonth.setDate(nextMonth.getDate() + 30)
+  nextMonth.setHours(23, 59, 59, 999)
 
   const upcomingPayments = await db.recurringPayment.findMany({
     where: {
       userId,
       status: "ACTIVE",
-      nextDueDate: { gte: today, lte: nextWeek }
+      nextDueDate: { lte: nextMonth }
     },
-    orderBy: { nextDueDate: "asc" }
+    orderBy: { nextDueDate: "asc" },
+    take: 5
   })
 
   // 6. Recent Transactions
@@ -89,10 +92,16 @@ export async function getDashboardStats(userId: string) {
     }
   })
 
+  // 7. Goals Summary
+  const goals = await db.goal.findMany({ where: { userId } })
+  const totalSavedForGoals = goals.reduce((sum, g) => sum + Number(g.currentAmount), 0)
+  const totalGoalTarget = goals.reduce((sum, g) => sum + Number(g.targetAmount), 0)
+
   return {
     netWorth,
     availableCash,
     investedCapital,
+    currentInvestmentValue,
     receivables,
     monthlyIncome,
     monthlyExpense,
@@ -104,6 +113,8 @@ export async function getDashboardStats(userId: string) {
     recentTransactions: recentTransactions.map(t => ({
       ...t,
       amount: Number(t.amount)
-    }))
+    })),
+    totalSavedForGoals,
+    totalGoalTarget
   }
 }

@@ -7,6 +7,8 @@ export const ErrorCodes = {
   CATEGORY_TYPE_MISMATCH: 'CATEGORY_TYPE_MISMATCH',
   CASH_CREATION_FORBIDDEN: 'CASH_CREATION_FORBIDDEN',
   SYSTEM_ACCOUNT_DELETION_FORBIDDEN: 'SYSTEM_ACCOUNT_DELETION_FORBIDDEN',
+  INSUFFICIENT_BALANCE: 'INSUFFICIENT_BALANCE',
+  INCORRECT_PASSWORD: 'INCORRECT_PASSWORD',
 };
 
 const idErrorMap: Record<string, string> = {
@@ -18,6 +20,8 @@ const idErrorMap: Record<string, string> = {
   [ErrorCodes.CATEGORY_TYPE_MISMATCH]: 'Tipe kategori tidak sesuai.',
   [ErrorCodes.CASH_CREATION_FORBIDDEN]: 'Tidak dapat membuat akun tunai manual.',
   [ErrorCodes.SYSTEM_ACCOUNT_DELETION_FORBIDDEN]: 'Akun sistem tidak dapat dihapus.',
+  [ErrorCodes.INSUFFICIENT_BALANCE]: 'Saldo tidak mencukupi.',
+  [ErrorCodes.INCORRECT_PASSWORD]: 'Password Anda saat ini salah.',
 };
 
 const enErrorMap: Record<string, string> = {
@@ -29,6 +33,8 @@ const enErrorMap: Record<string, string> = {
   [ErrorCodes.CATEGORY_TYPE_MISMATCH]: 'Category type mismatch.',
   [ErrorCodes.CASH_CREATION_FORBIDDEN]: 'Cannot create manual cash accounts.',
   [ErrorCodes.SYSTEM_ACCOUNT_DELETION_FORBIDDEN]: 'System accounts cannot be deleted.',
+  [ErrorCodes.INSUFFICIENT_BALANCE]: 'Insufficient balance.',
+  [ErrorCodes.INCORRECT_PASSWORD]: 'Incorrect current password.',
 };
 
 export function getLocalizedError(errorCode: string, lang: 'id' | 'en' = 'id'): string {

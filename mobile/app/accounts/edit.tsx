@@ -67,26 +67,17 @@ export default function EditAccountScreen() {
     );
   }
 
-  if (data.type === 'CASH') {
-    return (
-      <View className="flex-1 bg-white p-6 justify-center items-center">
-        <Text className="text-gray-500 mb-4 text-center">{t('cashAccountCannotBeEdited')}</Text>
-        <Button label={t('cancel')} onPress={() => router.back()} />
-      </View>
-    );
-  }
-
   return (
     <View className="flex-1 bg-white">
-      <View className="flex-row items-center p-4 border-b border-gray-100 pt-12">
+      <View className="flex-row items-center p-4 border-b border-gray-100 pt-16">
         <TouchableOpacity onPress={() => router.back()} className="mr-4">
           <ChevronLeft size={28} color="#111827" />
         </TouchableOpacity>
         <Text className="text-xl font-bold text-gray-900">{t('edit')}</Text>
       </View>
 
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
-        <ScrollView className="p-6" keyboardShouldPersistTaps="handled">
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+        <ScrollView style={{ padding: 24 }} keyboardShouldPersistTaps="handled">
           <Input 
             label={t('accountName')}
             value={name}

@@ -1,12 +1,25 @@
 import { z } from "zod"
 
 export const loanSchema = z.object({
+  type: z.enum(['LENT', 'BORROWED']).default('LENT'),
   accountId: z.string().min(1, "Account is required"),
   borrowerName: z.string().min(1, "Borrower name is required"),
   amount: z.coerce.number().min(1, "Minimum amount is 1"),
   lentDate: z.string().or(z.date()).transform((val) => new Date(val)),
   dueDate: z.string().or(z.date()).optional().transform((val) => val ? new Date(val) : undefined),
   notes: z.string().optional()
+}).refine((data) => {
+  if (data.dueDate) {
+    const lentDate = new Date(data.lentDate);
+    lentDate.setHours(0, 0, 0, 0);
+    const dueDate = new Date(data.dueDate);
+    dueDate.setHours(0, 0, 0, 0);
+    return dueDate >= lentDate;
+  }
+  return true;
+}, {
+  message: "Tenggat waktu tidak boleh sebelum tanggal pinjaman",
+  path: ["dueDate"]
 })
 
 export type LoanFormValues = z.infer<typeof loanSchema>

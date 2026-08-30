@@ -1,3 +1,4 @@
+import '../global.css';
 import { useEffect } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -5,6 +6,7 @@ import { getAccessToken } from '../lib/auth/token-storage';
 import { useAuthStore } from '../stores/auth-store';
 import { apiClient } from '../lib/api/client';
 import { View, ActivityIndicator } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 
 const queryClient = new QueryClient();
 
@@ -25,7 +27,7 @@ export default function RootLayout() {
         // Validate token and fetch user
         const response = await apiClient.get('/auth/me');
         if (response.data?.success) {
-          setUser(response.data.data);
+          setUser(response.data.data.user);
         } else {
           logout();
         }
@@ -65,11 +67,8 @@ export default function RootLayout() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" options={{ title: 'Oops!' }} />
-      </Stack>
+      <StatusBar style="dark" />
+      <Stack screenOptions={{ headerShown: false }} />
     </QueryClientProvider>
   );
 }

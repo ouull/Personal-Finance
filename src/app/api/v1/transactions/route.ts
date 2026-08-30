@@ -53,7 +53,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ success: true, data: serialized }, { status: 201 })
   } catch (error: any) {
     if (error.name === "TransactionError") {
-       return NextResponse.json({ success: false, error: error.message }, { status: 400 })
+       return NextResponse.json({ success: false, error: { code: error.code, message: error.message } }, { status: 400 })
     }
     return NextResponse.json({ success: false, error: "Failed to create transaction" }, { status: 500 })
   }

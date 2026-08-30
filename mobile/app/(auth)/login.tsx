@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Alert, TouchableWithoutFeedback, Keyboard, KeyboardAvoidingView, Platform } from 'react-native';
 import { Link } from 'expo-router';
 import { apiClient } from '../../lib/api/client';
 import { setTokens } from '../../lib/auth/token-storage';
@@ -21,7 +21,6 @@ export default function LoginScreen() {
 
     setIsLoading(true);
     try {
-      // Need a device info, fallback to 'mobile'
       const response = await apiClient.post('/auth/login', {
         email,
         password,
@@ -29,14 +28,23 @@ export default function LoginScreen() {
       });
 
       if (response.data?.success) {
-        const { accessToken, refreshToken, user } = response.data.data;
-        await setTokens(accessToken, refreshToken);
+        const { user, tokens } = response.data.data;
+        await setTokens(tokens.accessToken, tokens.refreshToken);
         login(user);
       } else {
         Alert.alert('Login Failed', response.data?.error || 'Unknown error');
       }
     } catch (error: any) {
-      const msg = error.response?.data?.error || 'Network error';
+      console.log('Login error:', error);
+      let msg = 'Network error. Please check your connection and API URL.';
+      
+      if (error.response?.data?.error) {
+        const apiError = error.response.data.error;
+        msg = typeof apiError === 'string' ? apiError : (apiError.message || JSON.stringify(apiError));
+      } else if (error.message) {
+        msg = error.message;
+      }
+      
       Alert.alert('Login Failed', msg);
     } finally {
       setIsLoading(false);
@@ -44,48 +52,62 @@ export default function LoginScreen() {
   };
 
   return (
-    <View className="flex-1 justify-center px-6 bg-white">
-      <Text className="text-3xl font-bold mb-8 text-center">{t('login')}</Text>
-      
-      <View className="mb-4">
-        <Text className="text-sm font-medium mb-1">{t('email')}</Text>
-        <TextInput
-          className="border border-gray-300 rounded-lg px-4 py-3 bg-gray-50"
-          value={email}
-          onChangeText={setEmail}
-          autoCapitalize="none"
-          keyboardType="email-address"
-        />
-      </View>
-
-      <View className="mb-8">
-        <Text className="text-sm font-medium mb-1">{t('password')}</Text>
-        <TextInput
-          className="border border-gray-300 rounded-lg px-4 py-3 bg-gray-50"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-        />
-      </View>
-
-      <TouchableOpacity
-        className="bg-blue-600 rounded-lg py-4 items-center mb-4"
-        onPress={handleLogin}
-        disabled={isLoading}
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        className="flex-1 justify-center px-6 bg-slate-50"
       >
-        {isLoading ? (
-          <ActivityIndicator color="white" />
-        ) : (
-          <Text className="text-white font-semibold text-lg">{t('login')}</Text>
-        )}
-      </TouchableOpacity>
+        <View className="mb-10 items-center">
+          <Text className="text-4xl font-extrabold mb-2 text-slate-900 tracking-tight">{t('login')}</Text>
+          <Text className="text-slate-500 text-center">{t('loginPrompt')}</Text>
+        </View>
+        
+        <View className="mb-5">
+          <Text className="text-sm font-semibold text-slate-700 mb-2 ml-1">{t('email')}</Text>
+          <TextInput
+            className="border border-slate-200 rounded-xl px-4 py-4 bg-white text-slate-900 shadow-sm"
+            value={email}
+            onChangeText={setEmail}
+            autoCapitalize="none"
+            keyboardType="email-address"
+            placeholder="Masukkan email Anda"
+            placeholderTextColor="#94a3b8"
+          />
+        </View>
 
-      <View className="flex-row justify-center">
-        <Text className="text-gray-600">{t('dontHaveAccount')}</Text>
-        <Link href="/(auth)/register" className="text-blue-600 font-medium">
-          {t('register')}
-        </Link>
-      </View>
-    </View>
+        <View className="mb-8">
+          <Text className="text-sm font-semibold text-slate-700 mb-2 ml-1">{t('password')}</Text>
+          <TextInput
+            className="border border-slate-200 rounded-xl px-4 py-4 bg-white text-slate-900 shadow-sm"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+            placeholder="Masukkan kata sandi"
+            placeholderTextColor="#94a3b8"
+          />
+        </View>
+
+        <TouchableOpacity
+          className="bg-blue-600 rounded-xl py-4 items-center mb-6 shadow-md shadow-blue-500/30"
+          onPress={handleLogin}
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <ActivityIndicator color="white" />
+          ) : (
+            <Text className="text-white font-bold text-lg tracking-wide">{t('login')}</Text>
+          )}
+        </TouchableOpacity>
+
+        <View className="flex-row justify-center items-center">
+          <Text className="text-slate-600 mr-2">{t('dontHaveAccount')}</Text>
+          <Link href="/(auth)/register" asChild>
+            <TouchableOpacity>
+              <Text className="text-blue-600 font-bold">{t('register')}</Text>
+            </TouchableOpacity>
+          </Link>
+        </View>
+      </KeyboardAvoidingView>
+    </TouchableWithoutFeedback>
   );
 }

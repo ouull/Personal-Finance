@@ -18,8 +18,6 @@ export default function InvestmentTransactionScreen() {
   const queryClient = useQueryClient();
 
   const [amount, setAmount] = useState('');
-  const [shares, setShares] = useState('');
-  const [price, setPrice] = useState('');
   const [accountId, setAccountId] = useState('');
   const [isAccountSheetOpen, setIsAccountSheetOpen] = useState(false);
 
@@ -31,17 +29,16 @@ export default function InvestmentTransactionScreen() {
     },
   });
 
-  const accounts = accountsData?.data?.filter((a: any) => a.status === 'ACTIVE') || [];
+  const accounts = accountsData?.data?.filter((a: any) => a.isActive === true) || [];
   const selectedAccount = accounts.find((a: any) => a.id === accountId);
 
-  const mutation = useMutation({
+    const mutation = useMutation({
     mutationFn: async () => {
       return apiClient.post(`/investments/${id}/transactions`, {
         type,
         amount: parseFloat(amount),
         accountId: accountId || undefined,
-        shares: shares ? parseFloat(shares) : undefined,
-        price: price ? parseFloat(price) : undefined,
+        date: new Date().toISOString(),
       });
     },
     onSuccess: () => {
@@ -51,6 +48,7 @@ export default function InvestmentTransactionScreen() {
       if (accountId) {
         queryClient.invalidateQueries({ queryKey: queryKeys.accounts });
       }
+      queryClient.invalidateQueries({ queryKey: queryKeys.transactions });
       router.back();
     },
     onError: (error: any) => {
@@ -61,7 +59,11 @@ export default function InvestmentTransactionScreen() {
 
   const handleSave = () => {
     if (!amount) {
-      Alert.alert(t('errorOccurred'), 'Nominal harus diisi.');
+      Alert.alert(t('errorOccurred'), t('amount') + ' harus diisi.');
+      return;
+    }
+    if ((type === 'BUY' || type === 'WITHDRAW') && !accountId) {
+      Alert.alert(t('errorOccurred'), 'Akun sumber dana harus dipilih.');
       return;
     }
     mutation.mutate();
@@ -79,46 +81,29 @@ export default function InvestmentTransactionScreen() {
 
   return (
     <View className="flex-1 bg-white">
-      <View className="flex-row items-center p-4 border-b border-gray-100 pt-12">
+      <View className="flex-row items-center p-4 border-b border-gray-100 pt-16">
         <TouchableOpacity onPress={() => router.back()} className="mr-4">
           <ChevronLeft size={28} color="#111827" />
         </TouchableOpacity>
         <Text className="text-xl font-bold text-gray-900">{getTitle()}</Text>
       </View>
 
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} className="flex-1">
         <ScrollView className="p-6" keyboardShouldPersistTaps="handled">
           
           <Input 
             label={t('amount')}
             placeholder="0"
             keyboardType="numeric"
-            value={amount}
-            onChangeText={setAmount}
+            value={amount ? parseInt(amount, 10).toLocaleString('id-ID') : ''}
+            onChangeText={(text) => setAmount(text.replace(/[^0-9]/g, ''))}
             autoFocus
           />
 
-          {(type === 'BUY' || type === 'SELL') && (
-            <>
-              <Input 
-                label="Jumlah Unit/Lembar (Opsional)"
-                placeholder="0"
-                keyboardType="numeric"
-                value={shares}
-                onChangeText={setShares}
-              />
-              <Input 
-                label="Harga Per Unit (Opsional)"
-                placeholder="0"
-                keyboardType="numeric"
-                value={price}
-                onChangeText={setPrice}
-              />
-            </>
-          )}
-
           <View className="mb-4">
-            <Text className="text-sm font-medium text-gray-700 mb-1">{t('sourceDestAccountOptional')}</Text>
+            <Text className="text-sm font-medium text-gray-700 mb-1">
+              {(type === 'BUY' || type === 'WITHDRAW') ? 'Pilih Akun' : t('sourceDestAccountOptional')}
+            </Text>
             <TouchableOpacity 
               className="border border-gray-300 rounded-xl p-4 bg-gray-50 flex-row justify-between items-center"
               onPress={() => setIsAccountSheetOpen(true)}
@@ -156,13 +141,14 @@ export default function InvestmentTransactionScreen() {
             {accounts.map((a: any) => (
               <TouchableOpacity
                 key={a.id}
-                className="py-4 border-b border-gray-100"
+                className="py-4 border-b border-gray-100 flex-row justify-between items-center"
                 onPress={() => {
                   setAccountId(a.id);
                   setIsAccountSheetOpen(false);
                 }}
               >
                 <Text className="text-base text-gray-900">{a.name}</Text>
+                <Text className="text-sm font-medium text-gray-500">Rp {Number(a.balance || 0).toLocaleString('id-ID')}</Text>
               </TouchableOpacity>
             ))}
           </ScrollView>

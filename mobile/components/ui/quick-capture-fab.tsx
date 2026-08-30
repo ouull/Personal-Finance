@@ -5,7 +5,9 @@ import { useTranslation } from '../../lib/i18n';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '../../lib/api/client';
 import { queryKeys } from '../../lib/api/keys';
+import { Input } from './input';
 import { BottomSheet } from './bottom-sheet';
+import { CategoryPickerSheet } from './category-picker-sheet';
 import { Button } from './button';
 import { getLocalizedError } from '../../lib/api/errors';
 
@@ -41,20 +43,21 @@ export function QuickCaptureFAB({ visible }: { visible: boolean }) {
   });
 
   const categories = categoriesData?.data || [];
-  const accounts = accountsData?.data?.filter((a: any) => a.status === 'ACTIVE') || [];
+  const accounts = accountsData?.data?.filter((a: any) => a.isActive === true) || [];
   
   const selectedCategory = categories.find((c: any) => c.id === categoryId);
   const selectedAccount = accounts.find((a: any) => a.id === accountId);
 
   const mutation = useMutation({
     mutationFn: async () => {
-      return apiClient.post('/transactions/quick-capture', {
+      return apiClient.post('/transactions', {
         amount: parseFloat(amount),
         categoryId,
-        accountId,
-        merchantName: merchant || undefined,
-        note: note || undefined,
+        sourceAccountId: accountId,
+        description: merchant || undefined,
+        notes: note || undefined,
         type: 'EXPENSE',
+        date: new Date().toISOString(),
       });
     },
     onSuccess: () => {
@@ -87,14 +90,14 @@ export function QuickCaptureFAB({ visible }: { visible: boolean }) {
   return (
     <>
       <TouchableOpacity
-        className="absolute bottom-6 right-6 bg-blue-600 w-14 h-14 rounded-full items-center justify-center shadow-lg elevation-5"
+        className="absolute bottom-24 right-6 bg-black w-16 h-16 rounded-full items-center justify-center shadow-lg elevation-5"
         onPress={() => setIsOpen(true)}
       >
-        <Plus color="white" size={28} />
+        <Plus color="white" size={32} />
       </TouchableOpacity>
 
       <Modal visible={isOpen} animationType="slide" presentationStyle="pageSheet">
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1 bg-white">
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: 'white' }}>
           <View className="flex-row justify-between items-center p-4 border-b border-gray-100">
             <Text className="text-xl font-bold">{t('quickCapture')}</Text>
             <TouchableOpacity onPress={() => setIsOpen(false)} className="p-2">
@@ -102,45 +105,31 @@ export function QuickCaptureFAB({ visible }: { visible: boolean }) {
             </TouchableOpacity>
           </View>
 
-          <ScrollView className="flex-1 p-6" keyboardShouldPersistTaps="handled">
+          <ScrollView style={{ flex: 1, padding: 24 }} keyboardShouldPersistTaps="handled">
             <View className="items-center mb-8">
               <Text className="text-gray-500 mb-2 font-medium">Rp</Text>
               <TextInput
                 className="text-5xl font-bold text-center w-full"
                 placeholder="0"
                 keyboardType="numeric"
-                value={amount}
-                onChangeText={setAmount}
-                autoFocus
+                value={amount ? amount.replace(/\B(?=(\d{3})+(?!\d))/g, '.') : ''}
+                onChangeText={(text) => {
+                  const numericOnly = text.replace(/[^0-9]/g, '');
+                  const formatted = numericOnly.replace(/^0+(?=\d)/, '');
+                  setAmount(formatted);
+                }}
               />
             </View>
 
             <View className="mb-6">
               <Text className="text-sm font-medium text-gray-700 mb-2">{t('category')}</Text>
               
-              {/* Quick shortcuts */}
-              <View className="flex-row flex-wrap mb-3 gap-2">
-                {categories.slice(0, 4).map((c: any) => (
-                  <TouchableOpacity
-                    key={c.id}
-                    onPress={() => setCategoryId(c.id)}
-                    className={`px-4 py-2 rounded-full border ${
-                      categoryId === c.id ? 'bg-blue-100 border-blue-600' : 'bg-white border-gray-300'
-                    }`}
-                  >
-                    <Text className={categoryId === c.id ? 'text-blue-700 font-semibold' : 'text-gray-700'}>
-                      {c.displayName}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-
               <TouchableOpacity
                 className="border border-gray-300 rounded-xl p-4 bg-gray-50 flex-row justify-between items-center"
                 onPress={() => setIsCategorySheetOpen(true)}
               >
                 <Text className={selectedCategory ? 'text-gray-900 font-medium' : 'text-gray-500'}>
-                  {selectedCategory ? selectedCategory.displayName : t('selectCategory')}
+                  {selectedCategory ? selectedCategory.name : t('selectCategory')}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -183,48 +172,36 @@ export function QuickCaptureFAB({ visible }: { visible: boolean }) {
             />
             <View className="h-10" />
           </ScrollView>
+
+          <CategoryPickerSheet
+            visible={isCategorySheetOpen}
+            onClose={() => setIsCategorySheetOpen(false)}
+            categories={categories}
+            onSelect={(id) => setCategoryId(id)}
+          />
+
+          <BottomSheet visible={isAccountSheetOpen} onClose={() => setIsAccountSheetOpen(false)}>
+            <View className="p-4">
+              <Text className="text-lg font-bold mb-4">{t('selectAccount')}</Text>
+              <ScrollView style={{ maxHeight: 400 }}>
+                {accounts.map((a: any) => (
+                  <TouchableOpacity
+                    key={a.id}
+                    className="py-4 border-b border-gray-100 flex-row justify-between items-center"
+                    onPress={() => {
+                      setAccountId(a.id);
+                      setIsAccountSheetOpen(false);
+                    }}
+                  >
+                    <Text className="text-base text-gray-900">{a.name}</Text>
+                    <Text className="text-sm font-medium text-gray-500">Rp {Number(a.balance || 0).toLocaleString('id-ID')}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          </BottomSheet>
         </KeyboardAvoidingView>
       </Modal>
-
-      <BottomSheet visible={isCategorySheetOpen} onClose={() => setIsCategorySheetOpen(false)}>
-        <View className="p-4">
-          <Text className="text-lg font-bold mb-4">{t('selectCategory')}</Text>
-          <ScrollView style={{ maxHeight: 400 }}>
-            {categories.map((c: any) => (
-              <TouchableOpacity
-                key={c.id}
-                className="py-4 border-b border-gray-100"
-                onPress={() => {
-                  setCategoryId(c.id);
-                  setIsCategorySheetOpen(false);
-                }}
-              >
-                <Text className="text-base">{c.displayName}</Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
-      </BottomSheet>
-
-      <BottomSheet visible={isAccountSheetOpen} onClose={() => setIsAccountSheetOpen(false)}>
-        <View className="p-4">
-          <Text className="text-lg font-bold mb-4">{t('selectAccount')}</Text>
-          <ScrollView style={{ maxHeight: 400 }}>
-            {accounts.map((a: any) => (
-              <TouchableOpacity
-                key={a.id}
-                className="py-4 border-b border-gray-100"
-                onPress={() => {
-                  setAccountId(a.id);
-                  setIsAccountSheetOpen(false);
-                }}
-              >
-                <Text className="text-base">{a.name}</Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
-      </BottomSheet>
     </>
   );
 }

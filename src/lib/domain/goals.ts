@@ -64,3 +64,47 @@ export async function getGoalById(userId: string, id: string) {
   }
   return goal
 }
+
+export async function addGoalDeposit(userId: string, goalId: string, amount: number, accountId: string, notes?: string) {
+  const goal = await db.goal.findUnique({ where: { id: goalId } })
+  if (!goal || goal.userId !== userId) {
+    throw new Error("Goal not found or unauthorized")
+  }
+
+  const account = await db.account.findUnique({ where: { id: accountId } })
+  if (!account || account.userId !== userId) {
+    throw new Error("Account not found or unauthorized")
+  }
+
+  return await db.$transaction(async (tx) => {
+    // 1. Update goal amount
+    const updatedGoal = await tx.goal.update({
+      where: { id: goalId },
+      data: {
+        currentAmount: { increment: amount }
+      }
+    })
+
+    // 2. Deduct from account
+    await tx.account.update({
+      where: { id: accountId },
+      data: {
+        balance: { decrement: amount }
+      }
+    })
+
+    // 3. Create transaction record
+    await tx.transaction.create({
+      data: {
+        userId,
+        sourceAccountId: accountId,
+        type: "EXPENSE",
+        amount,
+        description: `Deposit to Goal: ${goal.name}`,
+        notes
+      }
+    })
+
+    return updatedGoal
+  })
+}

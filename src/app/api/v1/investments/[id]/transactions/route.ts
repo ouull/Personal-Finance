@@ -52,6 +52,9 @@ export async function POST(
     if (error.message === "Unauthorized investment" || error.message === "Unauthorized account") {
       return NextResponse.json({ success: false, error: error.message }, { status: 403 })
     }
+    if (error.message === "Insufficient account balance" || error.message === "Insufficient investment cash balance" || error.message === "Cannot sell more than current value") {
+      return NextResponse.json({ success: false, error: { code: "INSUFFICIENT_BALANCE", message: error.message } }, { status: 400 })
+    }
     return NextResponse.json({ success: false, error: "Failed to add investment transaction" }, { status: 500 })
   }
 }

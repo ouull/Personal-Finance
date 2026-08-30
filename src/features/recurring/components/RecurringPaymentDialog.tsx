@@ -6,7 +6,7 @@ import { useState } from "react"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { RecurringPaymentFormValues, recurringPaymentSchema } from "@/shared/schemas/recurring"
-import { createRecurringPayment } from "../actions"
+import { createRecurringPayment, updateRecurringPayment } from "../actions"
 import {
   Dialog,
   DialogContent,
@@ -18,7 +18,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Plus } from "lucide-react"
+import { Plus, Edit2 } from "lucide-react"
 import { toast } from "sonner"
 import {
   Select,
@@ -43,9 +43,10 @@ interface Category {
 interface RecurringPaymentDialogProps {
   accounts: Account[]
   categories: Category[]
+  payment?: any
 }
 
-export function RecurringPaymentDialog({ accounts, categories }: RecurringPaymentDialogProps) {
+export function RecurringPaymentDialog({ accounts, categories, payment }: RecurringPaymentDialogProps) {
   const { t } = useTranslation()
   const [open, setOpen] = useState(false)
   const [isPending, setIsPending] = useState(false)
@@ -54,13 +55,25 @@ export function RecurringPaymentDialog({ accounts, categories }: RecurringPaymen
 
   const { register, handleSubmit, setValue, formState: { errors }, reset, watch } = useForm<RecurringPaymentFormValues>({
     resolver: zodResolver(recurringPaymentSchema) as any,
-    defaultValues: {
+    defaultValues: payment ? {
+      name: payment.name,
+      type: payment.type,
+      billingCycle: payment.billingCycle,
+      amount: payment.amount,
+      nextDueDate: new Date(payment.nextDueDate),
+      reminderDays: payment.reminderDays,
+      status: payment.status,
+      accountId: payment.accountId,
+      categoryId: payment.categoryId,
+      notes: payment.notes || "",
+    } : {
       name: "",
       type: "SUBSCRIPTION",
       billingCycle: "MONTHLY",
       amount: 0,
       nextDueDate: new Date(),
       reminderDays: 3,
+      status: "ACTIVE",
     },
   })
 
@@ -69,12 +82,17 @@ export function RecurringPaymentDialog({ accounts, categories }: RecurringPaymen
 
   async function onSubmit(data: RecurringPaymentFormValues) {
     setIsPending(true)
-    const result = await createRecurringPayment(data)
+    let result;
+    if (payment) {
+      result = await updateRecurringPayment(payment.id, data)
+    } else {
+      result = await createRecurringPayment(data as any)
+    }
     setIsPending(false)
 
     if (result.success) {
-      toast.success(t.common?.success || "Recurring payment scheduled")
-      reset()
+      toast.success(t.common?.success || (payment ? "Payment updated" : "Recurring payment scheduled"))
+      if (!payment) reset()
       setOpen(false)
     } else {
       toast.error(result.error || t.common?.error || "Failed to schedule payment")
@@ -87,15 +105,21 @@ export function RecurringPaymentDialog({ accounts, categories }: RecurringPaymen
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger render={
-        <Button className="bg-primary hover:bg-primary/90">
-          <Plus className="mr-2 h-4 w-4" /> {t.recurringPage?.addRecurring || "Add Recurring"}
-        </Button>
+        payment ? (
+          <Button variant="outline" size="sm" className="w-10 p-0">
+            <Edit2 className="h-4 w-4" />
+          </Button>
+        ) : (
+          <Button className="bg-primary hover:bg-primary/90">
+            <Plus className="mr-2 h-4 w-4" /> {t.recurringPage?.addRecurring || "Add Recurring"}
+          </Button>
+        )
       } />
       <DialogContent className="sm:max-w-[425px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{t.recurringPage?.addRecurring || "Schedule Recurring Payment"}</DialogTitle>
+          <DialogTitle>{payment ? t.common?.edit || "Edit" : t.recurringPage?.addRecurring || "Schedule Recurring Payment"}</DialogTitle>
           <DialogDescription>
-            {t.recurringPage?.addRecurringDesc || "Keep track of your subscriptions and regular bills."}
+            {payment ? "Update your recurring payment details." : t.recurringPage?.addRecurringDesc || "Keep track of your subscriptions and regular bills."}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -247,6 +271,23 @@ export function RecurringPaymentDialog({ accounts, categories }: RecurringPaymen
           <div className="space-y-2">
             <Label htmlFor="notes">{t.recurringPage?.notes || "Notes (Optional)"}</Label>
             <Input id="notes" placeholder={t.recurringPage?.notesPlaceholder || "e.g. Shared with Andi"} {...register("notes")} />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="status">Status</Label>
+            <Select 
+              value={watch("status") || "ACTIVE"}
+              onValueChange={(val: any) => setValue("status", val, { shouldValidate: true })} 
+            >
+              <SelectTrigger id="status">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="ACTIVE">Active</SelectItem>
+                <SelectItem value="PAUSED">Paused</SelectItem>
+                <SelectItem value="CANCELLED">Cancelled</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <Button type="submit" className="w-full font-bold" size="lg" disabled={isPending}>

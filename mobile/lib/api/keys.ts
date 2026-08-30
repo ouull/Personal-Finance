@@ -9,6 +9,9 @@ export const queryKeys = {
   lending: ['lending'] as const,
   loan: (id: string) => ['loan', id] as const,
   goals: ['goals'] as const,
+  goal: (id: string) => ['goal', id] as const,
+  budgets: (params: any) => ['budgets', params] as const,
+  reports: (params: any) => ['reports', params] as const,
   recurring: ['recurring'] as const,
   notifications: ['notifications'] as const,
 };

@@ -73,11 +73,12 @@ export default async function DashboardPage() {
   const recurring = recurringResult.success ? recurringResult.data || [] : []
   const upcomingPayments = recurring
     .filter((p: any) => {
+      if (p.status !== "ACTIVE") return false
       const days = differenceInDays(new Date(p.nextDueDate), new Date())
-      return days >= 0 && days <= 14 // Upcoming in next 14 days
+      return days <= 30 // Upcoming in next 30 days (including overdue)
     })
     .sort((a: any, b: any) => new Date(a.nextDueDate).getTime() - new Date(b.nextDueDate).getTime())
-    .slice(0, 3) // Top 3
+    .slice(0, 5) // Top 5
 
   // Get current month income/expense from cashFlowData (last item)
   const currentMonthData = cashFlowData.length > 0 ? cashFlowData[cashFlowData.length - 1] : { income: 0, expense: 0 }
@@ -158,8 +159,8 @@ export default async function DashboardPage() {
                     <div>
                       <h3 className="text-xs font-bold text-indigo-400 uppercase tracking-wider mb-1">Top Spending</h3>
                       <p className="text-lg font-black text-indigo-900">
-                        {topCategory.slug && (t as any).has(`categories.${topCategory.slug}`) 
-                          ? (t as any)(`categories.${topCategory.slug}`) 
+                        {topCategory.slug && (t as any).categories?.[topCategory.slug] 
+                          ? (t as any).categories[topCategory.slug] 
                           : topCategory.name}
                       </p>
                       <p className="text-sm font-medium text-indigo-700 mt-1">{topCategory.percentage.toFixed(1)}% of expenses</p>

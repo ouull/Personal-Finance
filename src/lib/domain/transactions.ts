@@ -13,6 +13,10 @@ export async function createTransaction(userId: string, parsed: any) {
     if (parsed.sourceAccountId) {
       const sourceAcc = await tx.account.findUnique({ where: { id: parsed.sourceAccountId } })
       if (!sourceAcc || sourceAcc.userId !== userId) throw new TransactionError("UNAUTHORIZED", "Unauthorized source account")
+      
+      if ((parsed.type === "EXPENSE" || parsed.type === "TRANSFER") && Number(sourceAcc.balance) < parsed.amount) {
+        throw new TransactionError("INSUFFICIENT_BALANCE", "Insufficient balance")
+      }
     }
     if (parsed.destinationAccountId) {
       const destAcc = await tx.account.findUnique({ where: { id: parsed.destinationAccountId } })
@@ -119,6 +123,14 @@ export async function updateTransaction(userId: string, id: string, parsed: any)
         where: { id: originalTx.destinationAccountId },
         data: { balance: { decrement: originalTx.amount } },
       })
+    }
+    
+    // 2.5. Check balance for EXPENSE and TRANSFER
+    if ((parsed.type === "EXPENSE" || parsed.type === "TRANSFER") && parsed.sourceAccountId) {
+      const sourceAccAfterReversal = await tx.account.findUnique({ where: { id: parsed.sourceAccountId } })
+      if (sourceAccAfterReversal && Number(sourceAccAfterReversal.balance) < parsed.amount) {
+        throw new TransactionError("INSUFFICIENT_BALANCE", "Insufficient balance")
+      }
     }
 
     // 3. Apply new financial effects

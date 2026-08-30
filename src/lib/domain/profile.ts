@@ -10,6 +10,7 @@ export async function getUserProfile(userId: string) {
       email: true,
       createdAt: true,
       language: true,
+      image: true,
     }
   })
   
@@ -20,7 +21,23 @@ export async function getUserProfile(userId: string) {
   return user
 }
 
-export async function changePassword(userId: string, data: ChangePasswordValues) {
+export async function updateProfile(userId: string, data: { image?: string }) {
+  return await db.user.update({
+    where: { id: userId },
+    data: {
+      image: data.image
+    },
+    select: {
+      name: true,
+      email: true,
+      createdAt: true,
+      language: true,
+      image: true,
+    }
+  })
+}
+
+export async function verifyCurrentPassword(userId: string, currentPassword: string) {
   const user = await db.user.findUnique({
     where: { id: userId }
   })
@@ -29,10 +46,16 @@ export async function changePassword(userId: string, data: ChangePasswordValues)
     throw new Error("User not found")
   }
   
-  const isValid = await bcrypt.compare(data.currentPassword, user.password)
+  const isValid = await bcrypt.compare(currentPassword, user.password)
   if (!isValid) {
     throw new Error("Incorrect current password")
   }
+  
+  return user;
+}
+
+export async function changePassword(userId: string, data: ChangePasswordValues) {
+  const user = await verifyCurrentPassword(userId, data.currentPassword)
   
   const hashedNewPassword = await bcrypt.hash(data.newPassword, 10)
   
