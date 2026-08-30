@@ -141,7 +141,7 @@ export function EditTransactionDialog({ transaction, accounts, categories = [], 
           <Button 
             variant="ghost" 
             size="icon" 
-            className="text-red-500 hover:text-red-700 hover:bg-red-50"
+            className="text-red-500 hover:text-red-700 hover:bg-red-50 mr-6"
             onClick={handleDelete}
           >
             <Trash2 className="h-4 w-4" />
