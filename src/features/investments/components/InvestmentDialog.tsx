@@ -134,7 +134,7 @@ export function InvestmentDialog({ accounts = [] }: { accounts?: Account[] }) {
               <Label htmlFor="accountId">Source Account</Label>
               <Select 
                 value={watch("accountId") || ""}
-                onValueChange={(val) => setValue("accountId", val, { shouldValidate: true })} 
+                onValueChange={(val) => setValue("accountId", val || "", { shouldValidate: true })} 
               >
                 <SelectTrigger id="accountId" className="w-full">
                   {watch("accountId") ? (
