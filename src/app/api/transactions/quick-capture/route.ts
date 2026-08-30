@@ -13,7 +13,7 @@ export async function POST(request: Request) {
     const userId = session.user.id
 
     const body = await request.json()
-    const { type, amount, description, sourceAccountId, destinationAccountId, categoryId, merchantId } = body
+    const { type, amount, description, sourceAccountId, destinationAccountId, categoryId, merchantName } = body
 
     if (!type || !amount) {
       return NextResponse.json({ error: "Tipe transaksi dan nominal wajib diisi" }, { status: 400 })
@@ -32,6 +32,37 @@ export async function POST(request: Request) {
         if (!acc || acc.userId !== userId) throw new Error("Unauthorized account")
       }
 
+      let finalMerchantId = undefined
+      
+      if (merchantName && merchantName.trim() !== "") {
+        const merchantSearchName = merchantName.trim()
+        
+        // Try to find existing merchant
+        const existingMerchant = await tx.merchant.findFirst({
+          where: {
+            userId,
+            name: {
+              equals: merchantSearchName,
+              mode: 'insensitive'
+            }
+          }
+        })
+        
+        if (existingMerchant) {
+          finalMerchantId = existingMerchant.id
+        } else {
+          // Create new merchant
+          const newMerchant = await tx.merchant.create({
+            data: {
+              userId,
+              name: merchantSearchName,
+              defaultCategoryId: categoryId || undefined
+            }
+          })
+          finalMerchantId = newMerchant.id
+        }
+      }
+
       const newTx = await tx.transaction.create({
         data: {
           userId,
@@ -42,7 +73,7 @@ export async function POST(request: Request) {
           sourceAccountId,
           destinationAccountId,
           categoryId,
-          merchantId
+          merchantId: finalMerchantId
         }
       })
 

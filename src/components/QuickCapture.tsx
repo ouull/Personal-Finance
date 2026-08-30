@@ -56,7 +56,7 @@ export function QuickCapture({ accounts, categories, merchants, frequentCategori
   const [amount, setAmount] = useState<number>(0)
   const [accountId, setAccountId] = useState(accounts[0]?.id || "")
   const [categoryId, setCategoryId] = useState("")
-  const [merchantId, setMerchantId] = useState("")
+  const [merchantName, setMerchantName] = useState("")
   const [notes, setNotes] = useState("")
 
   const expenseCategories = categories.filter(c => c.type === "EXPENSE")
@@ -78,7 +78,7 @@ export function QuickCapture({ accounts, categories, merchants, frequentCategori
           amount,
           sourceAccountId: accountId,
           categoryId,
-          merchantId: (merchantId && merchantId !== "NONE") ? merchantId : undefined,
+          merchantName: merchantName ? merchantName : undefined,
           description: notes || "Quick Capture"
         })
       })
@@ -88,6 +88,7 @@ export function QuickCapture({ accounts, categories, merchants, frequentCategori
         toast.success("Transaction captured fast!")
         setOpen(false)
         setAmount(0)
+        setMerchantName("")
         setNotes("")
         router.refresh()
       } else {
@@ -160,21 +161,12 @@ export function QuickCapture({ accounts, categories, merchants, frequentCategori
 
           <div className="space-y-1">
             <label className="text-xs font-semibold text-slate-500 uppercase">{t.quickCapture?.merchant || "Merchant (Optional)"}</label>
-            <Select value={merchantId} onValueChange={(val: any) => setMerchantId(val)}>
-              <SelectTrigger className="w-full text-sm border-0 border-b-2 border-slate-100 rounded-none px-0 py-2 outline-none focus:ring-0 focus:border-indigo-600 transition-colors bg-transparent shadow-none h-auto">
-                {merchantId ? (
-                  <span className="truncate">{merchantId === "NONE" ? "No Merchant" : merchants.find(m => m.id === merchantId)?.name}</span>
-                ) : (
-                  <SelectValue placeholder="No Merchant" />
-                )}
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="NONE">No Merchant</SelectItem>
-                {merchants.map((m) => (
-                  <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Input 
+              className="border-0 border-b-2 border-slate-100 rounded-none px-0 focus-visible:ring-0 focus-visible:border-indigo-600 transition-colors bg-transparent"
+              placeholder="e.g. Starbucks, Steam, etc"
+              value={merchantName}
+              onChange={(e) => setMerchantName(e.target.value)}
+            />
           </div>
 
           <div className="space-y-1 pb-4">
