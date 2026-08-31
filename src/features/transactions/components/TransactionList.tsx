@@ -125,8 +125,8 @@ export function TransactionList({ transactions, accounts = [], categories = [], 
             
             return (
               <Card key={t.id} className="p-4 flex flex-row items-center justify-between bg-white/60 backdrop-blur-md border-white/50 hover:bg-white/90 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 shadow-sm">
-                <div className="flex items-center gap-4">
-                  <div className={`p-2 rounded-full ${
+                <div className="flex items-center gap-4 flex-1 min-w-0">
+                  <div className={`p-2 rounded-full shrink-0 ${
                     isInitial ? "bg-indigo-100 text-indigo-600"
                     : isIncome ? "bg-emerald-100 text-emerald-600" 
                     : isTransfer ? "bg-blue-100 text-blue-600" 
@@ -145,11 +145,11 @@ export function TransactionList({ transactions, accounts = [], categories = [], 
                       <span>{format(new Date(t.date), "dd MMM yyyy", { locale: id })}</span>
                       <span>•</span>
                       {isTransfer ? (
-                        <span className="flex items-center gap-1">
+                        <span className="flex items-center gap-1 min-w-0">
                           <span className="truncate">{t.sourceAccount?.name}</span> <ArrowRightLeft className="w-3 h-3 shrink-0" /> <span className="truncate">{t.destinationAccount?.name}</span>
                         </span>
                       ) : (
-                        <span className="flex items-center gap-1">
+                        <span className="flex items-center gap-1 min-w-0">
                           <Wallet className="w-3 h-3 shrink-0" />
                           <span className="truncate">{isIncome ? t.destinationAccount?.name : t.sourceAccount?.name}</span>
                         </span>
@@ -158,8 +158,8 @@ export function TransactionList({ transactions, accounts = [], categories = [], 
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 shrink-0">
-                  <div className={`font-bold whitespace-nowrap ${isIncome ? "text-emerald-600" : isTransfer ? "text-slate-900" : "text-slate-900"}`}>
+                <div className="flex flex-col sm:flex-row items-end sm:items-center gap-1 sm:gap-3 shrink-0 pl-2">
+                  <div className={`font-bold text-right sm:text-left ${isIncome ? "text-emerald-600" : isTransfer ? "text-slate-900" : "text-slate-900"}`}>
                     {isIncome ? "+" : isTransfer ? "" : "-"}{formatRupiah(Number(t.amount))}
                   </div>
                   <EditTransactionDialog transaction={t as any} accounts={accounts} categories={categories} groupTranslations={groupTranslations} />
