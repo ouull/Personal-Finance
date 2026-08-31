@@ -13,6 +13,7 @@ interface SpendingData {
 const COLORS = ['#f43f5e', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#ec4899', '#14b8a6']
 
 import { cn } from "@/lib/utils"
+import { useCurrency } from "@/lib/CurrencyContext"
 
 export function SpendingChart({ data, categoryTranslations = {}, className }: { data: SpendingData[], categoryTranslations?: Record<string, string>, className?: string }) {
   const { t } = useTranslation()
@@ -25,13 +26,7 @@ export function SpendingChart({ data, categoryTranslations = {}, className }: { 
     return { ...d, name: displayName }
   })
 
-  const formatRupiah = (value: number) => {
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      minimumFractionDigits: 0,
-    }).format(value)
-  }
+  const { formatRupiah } = useCurrency()
 
   return (
     <Card className={cn("shadow-sm flex flex-col", className)}>

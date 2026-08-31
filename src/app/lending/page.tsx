@@ -7,6 +7,7 @@ import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { HandCoins, UserMinus, Clock } from "lucide-react"
 import { getTranslation } from "@/lib/i18n"
+import { useCurrency } from "@/lib/CurrencyContext"
 
 export default async function LendingPage() {
   const { t } = await getTranslation()
@@ -28,13 +29,7 @@ export default async function LendingPage() {
   const totalReceived = loans.reduce((sum: number, loan: any) => sum + loan.totalRepaid, 0)
   const overdueCount = loans.filter((loan: any) => loan.status === "OVERDUE").length
 
-  const formatRupiah = (amount: number) => {
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      minimumFractionDigits: 0,
-    }).format(amount)
-  }
+  const { formatRupiah } = useCurrency()
 
   return (
     <div className="space-y-8 pb-10">

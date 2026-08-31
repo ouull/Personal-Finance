@@ -3,6 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts"
 import { useTranslation } from "@/lib/TranslationContext"
+import { useCurrency } from "@/lib/CurrencyContext"
 
 interface AccountData {
   name: string
@@ -14,13 +15,7 @@ const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#f43f5e', '#ec4899'
 export function AccountDistributionChart({ data }: { data: AccountData[] }) {
   const { t } = useTranslation()
 
-  const formatRupiah = (value: number) => {
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      minimumFractionDigits: 0,
-    }).format(value)
-  }
+  const { formatRupiah } = useCurrency()
 
   return (
     <Card className="shadow-sm">

@@ -28,6 +28,7 @@ import {
 import { HandCoins } from "lucide-react"
 import { toast } from "sonner"
 import { useTranslation } from "@/lib/TranslationContext"
+import { useCurrency } from "@/lib/CurrencyContext"
 
 interface Account {
   id: string
@@ -82,13 +83,7 @@ export function RepaymentDialog({ accounts, loan }: RepaymentDialogProps) {
     }
   }
 
-  const formatRupiah = (amount: number) => {
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      minimumFractionDigits: 0,
-    }).format(amount)
-  }
+  const { formatRupiah } = useCurrency()
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

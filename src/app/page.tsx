@@ -19,6 +19,7 @@ import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { differenceInDays, format } from "date-fns"
 import { getTranslation } from "@/lib/i18n"
+import { useCurrency } from "@/lib/CurrencyContext"
 
 export default async function DashboardPage() {
   const { t } = await getTranslation();
@@ -83,13 +84,7 @@ export default async function DashboardPage() {
   // Get current month income/expense from cashFlowData (last item)
   const currentMonthData = cashFlowData.length > 0 ? cashFlowData[cashFlowData.length - 1] : { income: 0, expense: 0 }
 
-  const formatRupiah = (amount: number) => {
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      minimumFractionDigits: 0,
-    }).format(amount)
-  }
+  const { formatRupiah } = useCurrency()
 
   return (
     <div className="space-y-8 pb-10">

@@ -7,6 +7,7 @@ import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { TrendingUp, Wallet, BarChart3, LineChart } from "lucide-react"
 import { getTranslation } from "@/lib/i18n"
+import { useCurrency } from "@/lib/CurrencyContext"
 
 export default async function InvestmentsPage() {
   const { t } = await getTranslation()
@@ -30,13 +31,7 @@ export default async function InvestmentsPage() {
   
   const returnPct = totalInvested > 0 ? (totalGainLoss / totalInvested) : 0
 
-  const formatRupiah = (amount: number) => {
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      minimumFractionDigits: 0,
-    }).format(amount)
-  }
+  const { formatRupiah } = useCurrency()
 
   const formatPercentage = (val: number) => {
     return new Intl.NumberFormat("en-US", {

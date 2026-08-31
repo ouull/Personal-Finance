@@ -8,6 +8,7 @@ import { format } from "date-fns"
 import { id } from "date-fns/locale"
 import { EditTransactionDialog } from "./EditTransactionDialog"
 import { useTranslation } from "@/lib/TranslationContext"
+import { useCurrency } from "@/lib/CurrencyContext"
 
 interface Account {
   id: string
@@ -76,13 +77,7 @@ export function TransactionList({ transactions, accounts = [], categories = [], 
     document.body.removeChild(link)
   }
 
-  const formatRupiah = (amount: number) => {
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      minimumFractionDigits: 0,
-    }).format(amount)
-  }
+  const { formatRupiah } = useCurrency()
 
   return (
     <div className="space-y-4">

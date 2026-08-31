@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/sonner";
 import Providers from "@/components/Providers";
 import { Navigation } from "@/components/Navigation";
 import { QuickCaptureWrapper } from "@/components/QuickCaptureWrapper";
+import { CurrencyProvider } from "@/lib/CurrencyContext";
 
 const inter = Inter({
   variable: "--font-sans",
@@ -39,12 +40,14 @@ export default async function RootLayout({
       >
         <TranslationProvider dictionary={t} language={language}>
           <Providers>
-            <div className="min-h-screen flex flex-col max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8 relative">
-              <Navigation translations={(t as any).navigation || {}} />
-              {children}
-              <QuickCaptureWrapper />
-            </div>
-            <Toaster />
+            <CurrencyProvider>
+              <div className="min-h-screen flex flex-col max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8 relative">
+                <Navigation translations={(t as any).navigation || {}} />
+                {children}
+                <QuickCaptureWrapper />
+              </div>
+              <Toaster />
+            </CurrencyProvider>
           </Providers>
         </TranslationProvider>
       </body>

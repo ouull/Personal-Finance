@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
 import { CheckCircle2 } from "lucide-react"
 import { useTranslation } from "@/lib/TranslationContext"
+import { useCurrency } from "@/lib/CurrencyContext"
 
 interface Account {
   id: string
@@ -41,13 +42,7 @@ export function RecurringPaymentList({ payments, accounts, categories }: Recurri
   const { t } = useTranslation()
   const [processingId, setProcessingId] = useState<string | null>(null)
 
-  const formatRupiah = (amount: number) => {
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      minimumFractionDigits: 0,
-    }).format(amount)
-  }
+  const { formatRupiah } = useCurrency()
 
   const handleProcess = async (id: string, name: string) => {
     if (!confirm(t.common?.confirmDelete || `Are you sure you want to mark ${name} as paid? This will deduct from your account.`)) return

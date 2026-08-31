@@ -2,6 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
+import { useCurrency } from "@/lib/CurrencyContext"
 
 interface CashFlowData {
   name: string
@@ -14,20 +15,7 @@ interface CashFlowChartProps {
 }
 
 export function CashFlowChart({ data }: CashFlowChartProps) {
-  const formatRupiah = (value: number) => {
-    if (value >= 1000000) {
-      return `Rp${(value / 1000000).toFixed(1)}Jt`
-    }
-    return `Rp${(value / 1000).toFixed(0)}K`
-  }
-
-  const formatTooltip = (value: number) => {
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      minimumFractionDigits: 0,
-    }).format(value)
-  }
+  const { formatRupiah } = useCurrency()
 
   return (
     <Card className="shadow-sm">
@@ -54,7 +42,7 @@ export function CashFlowChart({ data }: CashFlowChartProps) {
                 tickFormatter={formatRupiah}
               />
               <Tooltip 
-                formatter={(value: any) => [formatTooltip(value as number), ""]}
+                formatter={(value: any) => [formatRupiah(value as number), ""]}
                 cursor={{ fill: 'transparent' }}
                 contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
               />

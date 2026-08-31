@@ -5,6 +5,7 @@ import { Wallet, Building2, Smartphone, TrendingUp } from "lucide-react"
 import { AddCashDialog } from "./AddCashDialog"
 import { DeleteAccountDialog } from "./DeleteAccountDialog"
 import { useTranslation } from "@/lib/TranslationContext"
+import { useCurrency } from "@/lib/CurrencyContext"
 
 // Gunakan tipe dari Prisma atau custom interface
 interface Account {
@@ -33,13 +34,7 @@ export function AccountList({ accounts }: { accounts: Account[] }) {
     )
   }
 
-  const formatRupiah = (amount: number) => {
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      minimumFractionDigits: 0,
-    }).format(amount)
-  }
+  const { formatRupiah } = useCurrency()
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

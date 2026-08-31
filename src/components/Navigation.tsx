@@ -2,12 +2,14 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { LayoutDashboard, HandCoins, TrendingUp, RefreshCw, LogOut, ReceiptText, Target, FolderOpen, Settings, User } from "lucide-react"
+import { LayoutDashboard, HandCoins, TrendingUp, RefreshCw, LogOut, ReceiptText, Target, FolderOpen, Settings, User, Eye, EyeOff } from "lucide-react"
 import { signOut } from "next-auth/react"
 import { NotificationCenter } from "./NotificationCenter"
+import { useCurrency } from "@/lib/CurrencyContext"
 
 export function Navigation({ translations }: { translations?: Record<string, string> }) {
   const pathname = usePathname()
+  const { hideBalances, toggleHideBalances } = useCurrency()
   
   if (pathname.startsWith("/auth")) return null
 
@@ -72,6 +74,13 @@ export function Navigation({ translations }: { translations?: Record<string, str
             </Link>
           )
         })}
+        <button
+          onClick={toggleHideBalances}
+          className="flex items-center justify-center w-9 h-9 rounded-xl text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors"
+          title={hideBalances ? "Show Balances" : "Hide Balances"}
+        >
+          {hideBalances ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+        </button>
         <NotificationCenter />
         <button 
           onClick={() => signOut({ callbackUrl: '/auth/login' })}

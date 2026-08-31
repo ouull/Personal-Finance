@@ -5,6 +5,7 @@ import { RepaymentDialog } from "./RepaymentDialog"
 import { format } from "date-fns"
 import { Badge } from "@/components/ui/badge"
 import { useTranslation } from "@/lib/TranslationContext"
+import { useCurrency } from "@/lib/CurrencyContext"
 
 interface Account {
   id: string
@@ -31,13 +32,7 @@ interface LoanListProps {
 
 export function LoanList({ loans, accounts }: LoanListProps) {
   const { t } = useTranslation()
-  const formatRupiah = (amount: number) => {
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      minimumFractionDigits: 0,
-    }).format(amount)
-  }
+  const { formatRupiah } = useCurrency()
 
   const getStatusBadge = (status: string) => {
     switch (status) {

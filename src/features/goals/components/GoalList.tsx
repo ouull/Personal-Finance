@@ -11,6 +11,7 @@ import { Trash2, Loader2 } from "lucide-react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useTranslation } from "@/lib/TranslationContext"
+import { useCurrency } from "@/lib/CurrencyContext"
 
 interface Goal {
   id: string
@@ -21,6 +22,7 @@ interface Goal {
 
 export function GoalList({ goals }: { goals: Goal[] }) {
   const { t } = useTranslation()
+  const { formatRupiah } = useCurrency()
   const router = useRouter()
   const [isDeleting, setIsDeleting] = useState<string | null>(null)
 
@@ -30,14 +32,6 @@ export function GoalList({ goals }: { goals: Goal[] }) {
         <p className="text-muted-foreground text-sm">{t.goalsPage?.emptyState || "No financial goals yet."}</p>
       </div>
     )
-  }
-
-  const formatRupiah = (amount: number) => {
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      maximumFractionDigits: 0,
-    }).format(amount)
   }
 
   async function handleDelete(id: string) {
