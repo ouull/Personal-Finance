@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { LoanDialog } from "./LoanDialog"
 import { RepaymentDialog } from "./RepaymentDialog"
 import { format } from "date-fns"
@@ -22,6 +23,7 @@ interface Loan {
   lentDate: string | Date
   dueDate?: string | Date
   status: string
+  type?: string
   notes?: string
 }
 
@@ -33,6 +35,9 @@ interface LoanListProps {
 export function LoanList({ loans, accounts }: LoanListProps) {
   const { t } = useTranslation()
   const { formatRupiah } = useCurrency()
+  const [filterType, setFilterType] = useState("ALL")
+
+  const filteredLoans = loans.filter(l => filterType === "ALL" || (l.type || "LENT") === filterType)
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -59,22 +64,54 @@ export function LoanList({ loans, accounts }: LoanListProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center mb-6">
-        <h3 className="font-semibold text-slate-800">{t.lendingPage?.yourLoans || "Your Loans"}</h3>
-        <LoanDialog accounts={accounts} />
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <h3 className="font-semibold text-slate-800">{t.lendingPage?.yourLoans || "Daftar Pinjaman"}</h3>
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          <div className="flex bg-slate-100 p-1 rounded-xl flex-1 sm:flex-none">
+            <button
+              onClick={() => setFilterType("ALL")}
+              className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${filterType === "ALL" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
+            >
+              Semua
+            </button>
+            <button
+              onClick={() => setFilterType("LENT")}
+              className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${filterType === "LENT" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
+            >
+              Piutang
+            </button>
+            <button
+              onClick={() => setFilterType("BORROWED")}
+              className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${filterType === "BORROWED" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
+            >
+              Hutang
+            </button>
+          </div>
+          <LoanDialog accounts={accounts} />
+        </div>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {loans.map((loan) => (
+      {filteredLoans.length === 0 ? (
+        <div className="text-center py-10 bg-slate-50 rounded-2xl border border-dashed border-slate-200 text-slate-500">
+          Tidak ada pinjaman dengan filter ini.
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredLoans.map((loan) => (
           <div key={loan.id} className="bg-white p-5 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col hover:shadow-md transition-shadow">
             <div className="flex justify-between items-start mb-3">
               <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <Badge variant="outline" className={`text-[10px] uppercase tracking-wider ${(loan.type || 'LENT') === 'BORROWED' ? 'bg-rose-50 text-rose-600 border-rose-200' : 'bg-emerald-50 text-emerald-600 border-emerald-200'}`}>
+                    {(loan.type || 'LENT') === 'BORROWED' ? (t.lendingPage?.iOwe || "Hutang") : (t.lendingPage?.owedToMe || "Piutang")}
+                  </Badge>
+                  {getStatusBadge(loan.status)}
+                </div>
                 <h4 className="font-bold text-lg text-slate-800">{loan.borrowerName}</h4>
-                <p className="text-xs text-slate-500 mt-1">
+                <p className="text-xs text-slate-500 mt-0.5">
                   {t.lendingPage?.lentOn ? `${t.lendingPage.lentOn} ` : "Lent on "}{format(new Date(loan.lentDate), "d MMM yyyy")}
                 </p>
               </div>
-              {getStatusBadge(loan.status)}
             </div>
 
             <div className="mt-4 space-y-3 flex-1">
@@ -105,7 +142,8 @@ export function LoanList({ loans, accounts }: LoanListProps) {
             )}
           </div>
         ))}
-      </div>
+        </div>
+      )}
     </div>
   )
 }

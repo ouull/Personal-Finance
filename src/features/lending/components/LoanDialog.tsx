@@ -50,8 +50,11 @@ export function LoanDialog({ accounts }: LoanDialogProps) {
       amount: 0,
       borrowerName: "",
       lentDate: new Date(),
+      type: "LENT"
     },
   })
+
+  const loanType = watch("type")
 
   async function onSubmit(data: LoanFormValues) {
     setIsPending(true)
@@ -87,9 +90,34 @@ export function LoanDialog({ accounts }: LoanDialogProps) {
           </div>
         ) : (
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <div className="flex bg-slate-100 p-1 rounded-xl">
+              <button
+                type="button"
+                onClick={() => setValue("type", "LENT")}
+                className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${loanType === "LENT" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
+              >
+                {t.lendingPage?.owedToMe || "Saya Meminjamkan"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setValue("type", "BORROWED")}
+                className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${loanType === "BORROWED" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
+              >
+                {t.lendingPage?.iOwe || "Saya Meminjam"}
+              </button>
+            </div>
+
             <div className="space-y-2">
-              <Label htmlFor="borrowerName">{t.lendingPage?.borrowerName || "Borrower Name"}</Label>
-              <Input id="borrowerName" placeholder={t.lendingPage?.borrowerPlaceholder || "e.g. John Doe"} {...register("borrowerName")} />
+              <Label htmlFor="borrowerName">
+                {loanType === "LENT" 
+                  ? (t.lendingPage?.borrowerName || "Nama Peminjam") 
+                  : (t.lendingPage?.lenderName || "Nama Pemberi Pinjaman")}
+              </Label>
+              <Input 
+                id="borrowerName" 
+                placeholder={loanType === "LENT" ? "Cth. Budi" : "Cth. Bank / Teman"} 
+                {...register("borrowerName")} 
+              />
               {errors.borrowerName && <p className="text-sm text-red-500">{errors.borrowerName.message}</p>}
             </div>
 
@@ -115,7 +143,11 @@ export function LoanDialog({ accounts }: LoanDialogProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="accountId">{t.lendingPage?.sourceAccount || "Pay from Account"}</Label>
+              <Label htmlFor="accountId">
+                {loanType === "LENT" 
+                  ? (t.lendingPage?.sourceAccount || "Gunakan Saldo Dari Akun")
+                  : (t.lendingPage?.destAccount || "Simpan Saldo Ke Akun")}
+              </Label>
               <Select 
                 value={watch("accountId") || undefined}
                 onValueChange={(val: any) => setValue("accountId", val, { shouldValidate: true })} 

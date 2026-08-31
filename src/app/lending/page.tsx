@@ -24,10 +24,10 @@ export default async function LendingPage() {
   const loans = loansResult.success ? loansResult.data || [] : []
   const accounts = accountsResult.success ? accountsResult.data || [] : []
 
-  const totalLent = loans.reduce((sum: number, loan: any) => sum + loan.amount, 0)
-  const totalOutstanding = loans.reduce((sum: number, loan: any) => sum + loan.remainingAmount, 0)
-  const totalReceived = loans.reduce((sum: number, loan: any) => sum + loan.totalRepaid, 0)
-  const overdueCount = loans.filter((loan: any) => loan.status === "OVERDUE").length
+  const totalReceivables = loans.filter((l:any) => (l.type || 'LENT') === 'LENT').reduce((sum: number, loan: any) => sum + loan.remainingAmount, 0)
+  const totalPayables = loans.filter((l:any) => l.type === 'BORROWED').reduce((sum: number, loan: any) => sum + loan.remainingAmount, 0)
+  const totalRepaidToUs = loans.filter((l:any) => (l.type || 'LENT') === 'LENT').reduce((sum: number, loan: any) => sum + loan.totalRepaid, 0)
+  const totalRepaidByUs = loans.filter((l:any) => l.type === 'BORROWED').reduce((sum: number, loan: any) => sum + loan.totalRepaid, 0)
 
   
   return (
@@ -47,30 +47,30 @@ export default async function LendingPage() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="bg-white p-5 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between">
             <div className="text-sm font-medium text-slate-500 flex items-center gap-2">
-              <UserMinus className="w-4 h-4 text-indigo-500" /> {t.lendingPage?.totalLent || "Total Lent"}
+              <UserMinus className="w-4 h-4 text-emerald-500" /> Sisa Piutang
             </div>
-            <div className="text-2xl font-bold text-slate-900 mt-2"><CurrencyDisplay amount={totalLent} /></div>
+            <div className="text-2xl font-bold text-slate-900 mt-2"><CurrencyDisplay amount={totalReceivables} /></div>
           </div>
           
           <div className="bg-white p-5 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between">
             <div className="text-sm font-medium text-slate-500 flex items-center gap-2">
-              <HandCoins className="w-4 h-4 text-orange-500" /> {t.lendingPage?.outstanding || "Outstanding"}
+              <HandCoins className="w-4 h-4 text-orange-500" /> Sisa Hutang
             </div>
-            <div className="text-2xl font-bold text-orange-600 mt-2"><CurrencyDisplay amount={totalOutstanding} /></div>
+            <div className="text-2xl font-bold text-orange-600 mt-2"><CurrencyDisplay amount={totalPayables} /></div>
           </div>
           
           <div className="bg-white p-5 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between">
             <div className="text-sm font-medium text-slate-500 flex items-center gap-2">
-              <HandCoins className="w-4 h-4 text-green-500" /> {t.lendingPage?.totalReceived || "Total Received"}
+              <HandCoins className="w-4 h-4 text-emerald-500" /> Pembayaran Diterima
             </div>
-            <div className="text-2xl font-bold text-green-600 mt-2"><CurrencyDisplay amount={totalReceived} /></div>
+            <div className="text-2xl font-bold text-emerald-600 mt-2"><CurrencyDisplay amount={totalRepaidToUs} /></div>
           </div>
 
-          <div className="bg-white p-5 rounded-2xl border border-red-200 shadow-sm flex flex-col justify-between">
-            <div className="text-sm font-medium text-red-500 flex items-center gap-2">
-              <Clock className="w-4 h-4" /> {t.lendingPage?.overdueLoans || "Overdue Loans"}
+          <div className="bg-white p-5 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between">
+            <div className="text-sm font-medium text-slate-500 flex items-center gap-2">
+              <Clock className="w-4 h-4 text-indigo-500" /> Pembayaran Dilakukan
             </div>
-            <div className="text-2xl font-bold text-red-600 mt-2">{overdueCount}</div>
+            <div className="text-2xl font-bold text-indigo-600 mt-2"><CurrencyDisplay amount={totalRepaidByUs} /></div>
           </div>
         </div>
       </FadeIn>

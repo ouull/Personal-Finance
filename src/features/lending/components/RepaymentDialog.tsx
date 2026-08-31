@@ -41,6 +41,7 @@ interface Loan {
   amount: number
   totalRepaid: number
   remainingAmount: number
+  type?: string
 }
 
 interface RepaymentDialogProps {
@@ -84,20 +85,21 @@ export function RepaymentDialog({ accounts, loan }: RepaymentDialogProps) {
   }
 
   const { formatRupiah } = useCurrency()
+  const isBorrowed = (loan.type || 'LENT') === 'BORROWED'
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger render={
-        <Button size="sm" variant="outline" className="gap-2 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 hover:text-emerald-700 border-emerald-200">
+        <Button size="sm" variant="outline" className={`gap-2 ${isBorrowed ? 'bg-orange-50 text-orange-600 hover:bg-orange-100 hover:text-orange-700 border-orange-200' : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100 hover:text-emerald-700 border-emerald-200'}`}>
           <HandCoins className="h-4 w-4" />
-          {t.lendingPage?.receiveRepayment || "Receive Repayment"}
+          {isBorrowed ? (t.lendingPage?.payDebt || "Bayar Hutang") : (t.lendingPage?.receiveRepayment || "Terima Pembayaran")}
         </Button>
       } />
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>{t.lendingPage?.receiveRepayment || "Receive Repayment"}</DialogTitle>
+          <DialogTitle>{isBorrowed ? (t.lendingPage?.payDebt || "Bayar Hutang") : (t.lendingPage?.receiveRepayment || "Terima Pembayaran")}</DialogTitle>
           <DialogDescription>
-            {t.lendingPage?.repaymentDescription || "Record money paid back to you."}
+            {isBorrowed ? "Catat pembayaran hutang Anda kepada pemberi pinjaman." : (t.lendingPage?.repaymentDescription || "Record money paid back to you.")}
           </DialogDescription>
         </DialogHeader>
         {accounts.length === 0 ? (
@@ -138,7 +140,7 @@ export function RepaymentDialog({ accounts, loan }: RepaymentDialogProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="accountId">{t.lendingPage?.depositTo || "Deposit to Account"}</Label>
+              <Label htmlFor="accountId">{isBorrowed ? (t.lendingPage?.sourceAccount || "Ambil Dari Akun") : (t.lendingPage?.depositTo || "Deposit to Account")}</Label>
               <Select 
                 value={watch("accountId") || ""}
                 onValueChange={(val) => setValue("accountId", val as any, { shouldValidate: true })} 

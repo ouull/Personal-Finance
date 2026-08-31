@@ -20,15 +20,25 @@ export async function getNetWorth() {
     const accounts = await db.account.findMany({ where: { userId } })
     const totalCash = accounts.reduce((sum: number, acc: any) => sum + Number(acc.balance), 0)
 
-    // 2. Receivables (Outstanding Loans)
+    // 2. Receivables and Payables (Loans)
     const loans = await db.loan.findMany({
       where: { userId, status: { in: ["OUTSTANDING", "PARTIALLY_PAID", "OVERDUE"] } },
       include: { repayments: true }
     })
-    const totalReceivables = loans.reduce((sum: number, loan: any) => {
+    
+    let totalReceivables = 0
+    let totalPayables = 0
+    
+    loans.forEach((loan: any) => {
       const repaid = loan.repayments.reduce((rSum: number, r: any) => rSum + Number(r.amount), 0)
-      return sum + (Number(loan.amount) - repaid)
-    }, 0)
+      const remaining = Number(loan.amount) - repaid
+      
+      if ((loan.type || "LENT") === "LENT") {
+        totalReceivables += remaining
+      } else {
+        totalPayables += remaining
+      }
+    })
 
     // 3. Investments
     const investments = await db.investment.findMany({
@@ -37,7 +47,7 @@ export async function getNetWorth() {
     const totalInvestments = investments.reduce((sum: number, inv: any) => sum + Number(inv.currentValue), 0)
     const investedCapital = investments.reduce((sum: number, inv: any) => sum + Number(inv.totalInvested), 0)
 
-    const netWorth = totalCash + totalReceivables + totalInvestments
+    const netWorth = totalCash + totalReceivables + totalInvestments - totalPayables
 
     return { 
       success: true, 
@@ -45,6 +55,7 @@ export async function getNetWorth() {
         netWorth,
         totalCash,
         totalReceivables,
+        totalPayables,
         totalInvestments,
         investedCapital
       }

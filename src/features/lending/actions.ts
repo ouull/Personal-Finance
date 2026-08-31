@@ -29,6 +29,7 @@ export async function getLoans() {
 export async function createLoan(data: {
   accountId: string
   borrowerName: string
+  type?: string
   amount: number
   lentDate: Date
   dueDate?: Date
