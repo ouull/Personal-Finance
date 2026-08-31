@@ -8,7 +8,7 @@ import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { RefreshCw, CalendarClock, CreditCard } from "lucide-react"
 import { getTranslation } from "@/lib/i18n"
-import { useCurrency } from "@/lib/CurrencyContext"
+import { CurrencyDisplay } from "@/components/CurrencyDisplay"
 
 export default async function RecurringPage() {
   const { t } = await getTranslation()
@@ -48,8 +48,7 @@ export default async function RecurringPage() {
     return sum
   }, 0)
 
-  const { formatRupiah } = useCurrency()
-
+  
   return (
     <div className="space-y-8 pb-10">
       <FadeIn delay={0.1}>
@@ -69,14 +68,14 @@ export default async function RecurringPage() {
             <div className="text-sm font-medium text-slate-500 flex items-center gap-2">
               <RefreshCw className="w-4 h-4 text-indigo-500" /> {t.recurringPage?.monthlyCommitments || "Monthly Commitments"}
             </div>
-            <div className="text-2xl font-bold text-slate-900 mt-2">~{formatRupiah(monthlyCommitments)}</div>
+            <div className="text-2xl font-bold text-slate-900 mt-2">~<CurrencyDisplay amount={monthlyCommitments} /></div>
           </div>
           
           <div className="bg-white p-5 rounded-2xl border border-amber-200 shadow-sm flex flex-col justify-between">
             <div className="text-sm font-medium text-amber-600 flex items-center gap-2">
               <CalendarClock className="w-4 h-4" /> {t.recurringPage?.dueThisWeek || "Due This Week"}
             </div>
-            <div className="text-2xl font-bold text-amber-600 mt-2">{formatRupiah(dueThisWeek)}</div>
+            <div className="text-2xl font-bold text-amber-600 mt-2"><CurrencyDisplay amount={dueThisWeek} /></div>
           </div>
           
           <div className="bg-white p-5 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between">

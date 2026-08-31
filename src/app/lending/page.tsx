@@ -7,7 +7,7 @@ import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { HandCoins, UserMinus, Clock } from "lucide-react"
 import { getTranslation } from "@/lib/i18n"
-import { useCurrency } from "@/lib/CurrencyContext"
+import { CurrencyDisplay } from "@/components/CurrencyDisplay"
 
 export default async function LendingPage() {
   const { t } = await getTranslation()
@@ -29,8 +29,7 @@ export default async function LendingPage() {
   const totalReceived = loans.reduce((sum: number, loan: any) => sum + loan.totalRepaid, 0)
   const overdueCount = loans.filter((loan: any) => loan.status === "OVERDUE").length
 
-  const { formatRupiah } = useCurrency()
-
+  
   return (
     <div className="space-y-8 pb-10">
       <FadeIn delay={0.1}>
@@ -50,21 +49,21 @@ export default async function LendingPage() {
             <div className="text-sm font-medium text-slate-500 flex items-center gap-2">
               <UserMinus className="w-4 h-4 text-indigo-500" /> {t.lendingPage?.totalLent || "Total Lent"}
             </div>
-            <div className="text-2xl font-bold text-slate-900 mt-2">{formatRupiah(totalLent)}</div>
+            <div className="text-2xl font-bold text-slate-900 mt-2"><CurrencyDisplay amount={totalLent} /></div>
           </div>
           
           <div className="bg-white p-5 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between">
             <div className="text-sm font-medium text-slate-500 flex items-center gap-2">
               <HandCoins className="w-4 h-4 text-orange-500" /> {t.lendingPage?.outstanding || "Outstanding"}
             </div>
-            <div className="text-2xl font-bold text-orange-600 mt-2">{formatRupiah(totalOutstanding)}</div>
+            <div className="text-2xl font-bold text-orange-600 mt-2"><CurrencyDisplay amount={totalOutstanding} /></div>
           </div>
           
           <div className="bg-white p-5 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between">
             <div className="text-sm font-medium text-slate-500 flex items-center gap-2">
               <HandCoins className="w-4 h-4 text-green-500" /> {t.lendingPage?.totalReceived || "Total Received"}
             </div>
-            <div className="text-2xl font-bold text-green-600 mt-2">{formatRupiah(totalReceived)}</div>
+            <div className="text-2xl font-bold text-green-600 mt-2"><CurrencyDisplay amount={totalReceived} /></div>
           </div>
 
           <div className="bg-white p-5 rounded-2xl border border-red-200 shadow-sm flex flex-col justify-between">

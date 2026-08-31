@@ -19,7 +19,7 @@ import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { differenceInDays, format } from "date-fns"
 import { getTranslation } from "@/lib/i18n"
-import { useCurrency } from "@/lib/CurrencyContext"
+import { CurrencyDisplay } from "@/components/CurrencyDisplay"
 
 export default async function DashboardPage() {
   const { t } = await getTranslation();
@@ -84,8 +84,7 @@ export default async function DashboardPage() {
   // Get current month income/expense from cashFlowData (last item)
   const currentMonthData = cashFlowData.length > 0 ? cashFlowData[cashFlowData.length - 1] : { income: 0, expense: 0 }
 
-  const { formatRupiah } = useCurrency()
-
+  
   return (
     <div className="space-y-8 pb-10">
       <FadeIn delay={0.1}>
@@ -110,17 +109,17 @@ export default async function DashboardPage() {
           <div className="relative z-10">
             <h2 className="text-sm font-medium text-indigo-200/80 uppercase tracking-widest mb-2">{t.dashboard.netWorth}</h2>
             <div className="text-5xl md:text-6xl font-black mt-2 text-white tracking-tighter drop-shadow-sm">
-              {formatRupiah(netWorthData?.netWorth || 0)}
+              <CurrencyDisplay amount={netWorthData?.netWorth || 0} />
             </div>
             
             <div className="flex gap-4 mt-6">
               <div className="bg-green-500/10 border border-green-500/20 px-3 py-1.5 rounded-lg flex items-center gap-2">
                 <ArrowUp className="w-3 h-3 text-green-400" />
-                <span className="text-sm font-medium text-green-100">{t.transactionsPage?.income || "In"}: {formatRupiah(currentMonthData.income)}</span>
+                <span className="text-sm font-medium text-green-100">{t.transactionsPage?.income || "In"}: <CurrencyDisplay amount={currentMonthData.income} /></span>
               </div>
               <div className="bg-red-500/10 border border-red-500/20 px-3 py-1.5 rounded-lg flex items-center gap-2">
                 <ArrowDown className="w-3 h-3 text-red-400" />
-                <span className="text-sm font-medium text-red-100">{t.transactionsPage?.expense || "Out"}: {formatRupiah(currentMonthData.expense)}</span>
+                <span className="text-sm font-medium text-red-100">{t.transactionsPage?.expense || "Out"}: <CurrencyDisplay amount={currentMonthData.expense} /></span>
               </div>
             </div>
           </div>
@@ -128,15 +127,15 @@ export default async function DashboardPage() {
           <div className="relative z-10 flex flex-wrap gap-4 md:justify-end">
             <div className="bg-white/10 backdrop-blur-sm border border-white/20 p-4 rounded-xl text-white">
               <div className="text-xs text-indigo-200 mb-1 flex items-center gap-1"><Wallet className="w-3 h-3" /> {t.dashboard.availableCash}</div>
-              <div className="text-lg font-bold">{formatRupiah(netWorthData?.totalCash || 0)}</div>
+              <div className="text-lg font-bold"><CurrencyDisplay amount={netWorthData?.totalCash || 0} /></div>
             </div>
             <div className="bg-white/10 backdrop-blur-sm border border-white/20 p-4 rounded-xl text-white">
               <div className="text-xs text-indigo-200 mb-1 flex items-center gap-1"><TrendingUp className="w-3 h-3" /> {t.dashboard.invested}</div>
-              <div className="text-lg font-bold">{formatRupiah(netWorthData?.totalInvestments || 0)}</div>
+              <div className="text-lg font-bold"><CurrencyDisplay amount={netWorthData?.totalInvestments || 0} /></div>
             </div>
             <div className="bg-white/10 backdrop-blur-sm border border-white/20 p-4 rounded-xl text-white">
               <div className="text-xs text-indigo-200 mb-1 flex items-center gap-1"><ArrowDownUp className="w-3 h-3" /> {t.dashboard.lentOut}</div>
-              <div className="text-lg font-bold">{formatRupiah(netWorthData?.totalReceivables || 0)}</div>
+              <div className="text-lg font-bold"><CurrencyDisplay amount={netWorthData?.totalReceivables || 0} /></div>
             </div>
           </div>
         </section>
@@ -161,7 +160,7 @@ export default async function DashboardPage() {
                       <p className="text-sm font-medium text-indigo-700 mt-1">{topCategory.percentage.toFixed(1)}% of expenses</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-xl font-bold text-indigo-900">{formatRupiah(topCategory.value)}</p>
+                      <p className="text-xl font-bold text-indigo-900"><CurrencyDisplay amount={topCategory.value} /></p>
                     </div>
                   </div>
                 )}
@@ -196,7 +195,7 @@ export default async function DashboardPage() {
                             {new Date(payment.nextDueDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
                           </p>
                         </div>
-                        <p className="font-bold text-slate-800 text-sm">{formatRupiah(payment.amount)}</p>
+                        <p className="font-bold text-slate-800 text-sm"><CurrencyDisplay amount={payment.amount} /></p>
                       </div>
                     ))}
                   </div>
@@ -220,7 +219,7 @@ export default async function DashboardPage() {
                             {l.status === "OVERDUE" ? "Overdue" : "Pending"}
                           </p>
                         </div>
-                        <span className="font-bold text-slate-900">{formatRupiah(l.remainingAmount)}</span>
+                        <span className="font-bold text-slate-900"><CurrencyDisplay amount={l.remainingAmount} /></span>
                       </div>
                     ))}
                   </div>

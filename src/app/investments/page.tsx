@@ -7,7 +7,7 @@ import { authOptions } from "@/lib/auth"
 import { redirect } from "next/navigation"
 import { TrendingUp, Wallet, BarChart3, LineChart } from "lucide-react"
 import { getTranslation } from "@/lib/i18n"
-import { useCurrency } from "@/lib/CurrencyContext"
+import { CurrencyDisplay } from "@/components/CurrencyDisplay"
 
 export default async function InvestmentsPage() {
   const { t } = await getTranslation()
@@ -31,8 +31,7 @@ export default async function InvestmentsPage() {
   
   const returnPct = totalInvested > 0 ? (totalGainLoss / totalInvested) : 0
 
-  const { formatRupiah } = useCurrency()
-
+  
   const formatPercentage = (val: number) => {
     return new Intl.NumberFormat("en-US", {
       style: "percent",
@@ -60,14 +59,14 @@ export default async function InvestmentsPage() {
             <div className="text-sm font-medium text-slate-500 flex items-center gap-2">
               <Wallet className="w-4 h-4 text-indigo-500" /> Total Invested
             </div>
-            <div className="text-2xl font-bold text-slate-900 mt-2">{formatRupiah(totalInvested)}</div>
+            <div className="text-2xl font-bold text-slate-900 mt-2"><CurrencyDisplay amount={totalInvested} /></div>
           </div>
           
           <div className="bg-white p-5 rounded-2xl border border-slate-200/60 shadow-sm flex flex-col justify-between">
             <div className="text-sm font-medium text-slate-500 flex items-center gap-2">
               <BarChart3 className="w-4 h-4 text-cyan-500" /> Current Value
             </div>
-            <div className="text-2xl font-bold text-slate-900 mt-2">{formatRupiah(currentValue)}</div>
+            <div className="text-2xl font-bold text-slate-900 mt-2"><CurrencyDisplay amount={currentValue} /></div>
           </div>
           
           <div className={`bg-white p-5 rounded-2xl border ${totalGainLoss >= 0 ? "border-green-200" : "border-red-200"} shadow-sm flex flex-col justify-between`}>
@@ -75,7 +74,7 @@ export default async function InvestmentsPage() {
               <LineChart className="w-4 h-4" /> Unrealized Gain/Loss
             </div>
             <div className={`text-2xl font-bold mt-2 ${totalGainLoss >= 0 ? "text-green-600" : "text-red-600"}`}>
-              {totalGainLoss >= 0 ? "+" : ""}{formatRupiah(totalGainLoss)}
+              {totalGainLoss >= 0 ? "+" : ""}<CurrencyDisplay amount={totalGainLoss} />
             </div>
           </div>
 
@@ -88,7 +87,7 @@ export default async function InvestmentsPage() {
             </div>
             {totalRealizedGain !== 0 && (
                <div className="text-xs text-slate-500 mt-2">
-                 Realized: {totalRealizedGain >= 0 ? "+" : ""}{formatRupiah(totalRealizedGain)}
+                 Realized: {totalRealizedGain >= 0 ? "+" : ""}<CurrencyDisplay amount={totalRealizedGain} />
                </div>
             )}
           </div>
