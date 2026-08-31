@@ -170,12 +170,14 @@ export default async function DashboardPage() {
                     </div>
                   </div>
                 )}
+                <AccountDistributionChart data={accountDistributionData} />
+              </div>
+              <div className="h-full flex flex-col">
                 <SpendingChart 
                   data={spendingByCategoryData} 
                   categoryTranslations={(t as any).categories || {}} 
                 />
               </div>
-              <AccountDistributionChart data={accountDistributionData} />
             </section>
           </FadeIn>
 
