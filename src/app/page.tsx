@@ -176,6 +176,7 @@ export default async function DashboardPage() {
                 <SpendingChart 
                   data={spendingByCategoryData} 
                   categoryTranslations={(t as any).categories || {}} 
+                  className="h-full"
                 />
               </div>
             </section>
