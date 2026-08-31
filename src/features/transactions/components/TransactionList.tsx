@@ -141,15 +141,14 @@ export function TransactionList({ transactions, accounts = [], categories = [], 
                     <p className="font-semibold text-slate-900 text-base truncate">
                       {t.description || (isIncome ? "Income" : isTransfer ? "Transfer" : "Expense")}
                     </p>
-                    <div className="flex items-center gap-1 text-sm text-muted-foreground mt-0.5 truncate">
-                      <span>{format(new Date(t.date), "dd MMM yyyy", { locale: id })}</span>
-                      <span>•</span>
+                    <div className="flex flex-col gap-0.5 mt-0.5 min-w-0">
+                      <span className="text-sm text-muted-foreground truncate">{format(new Date(t.date), "dd MMM yyyy", { locale: id })}</span>
                       {isTransfer ? (
-                        <span className="flex items-center gap-1 min-w-0">
+                        <span className="flex items-center gap-1 min-w-0 text-sm text-slate-500">
                           <span className="truncate">{t.sourceAccount?.name}</span> <ArrowRightLeft className="w-3 h-3 shrink-0" /> <span className="truncate">{t.destinationAccount?.name}</span>
                         </span>
                       ) : (
-                        <span className="flex items-center gap-1 min-w-0">
+                        <span className="flex items-center gap-1 min-w-0 text-sm text-slate-500">
                           <Wallet className="w-3 h-3 shrink-0" />
                           <span className="truncate">{isIncome ? t.destinationAccount?.name : t.sourceAccount?.name}</span>
                         </span>
