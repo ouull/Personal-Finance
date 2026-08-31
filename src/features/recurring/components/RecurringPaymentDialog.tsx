@@ -248,6 +248,7 @@ export function RecurringPaymentDialog({ accounts, categories, payment }: Recurr
               <Input 
                 id="nextDueDate" 
                 type="date"
+                min={new Date().toISOString().split('T')[0]}
                 onChange={(e) => {
                   setValue("nextDueDate", e.target.value ? new Date(e.target.value) : undefined as any, { shouldValidate: true });
                 }} 

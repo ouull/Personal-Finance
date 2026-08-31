@@ -98,7 +98,10 @@ export async function getRecentTransactions(limit = 5) {
     const transactions = await db.transaction.findMany({
       where: { userId },
       take: limit,
-      orderBy: { date: "desc" },
+      orderBy: [
+        { date: "desc" },
+        { createdAt: "desc" }
+      ],
       include: {
         category: true,
         merchant: true,
@@ -132,7 +135,10 @@ export async function getTransactions() {
     const userId = await getUserId()
     const transactions = await db.transaction.findMany({
       where: { userId },
-      orderBy: { date: "desc" },
+      orderBy: [
+        { date: "desc" },
+        { createdAt: "desc" }
+      ],
       include: {
         category: true,
         merchant: true,

@@ -20,6 +20,18 @@ export const loanSchema = z.object({
 }, {
   message: "Tenggat waktu tidak boleh sebelum tanggal pinjaman",
   path: ["dueDate"]
+}).refine((data) => {
+  if (data.dueDate) {
+    const dueDate = new Date(data.dueDate);
+    dueDate.setHours(0, 0, 0, 0);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return dueDate >= today;
+  }
+  return true;
+}, {
+  message: "Tenggat waktu tidak boleh di masa lampau",
+  path: ["dueDate"]
 })
 
 export type LoanFormValues = z.infer<typeof loanSchema>

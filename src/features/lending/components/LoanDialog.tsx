@@ -189,6 +189,7 @@ export function LoanDialog({ accounts }: LoanDialogProps) {
                 <Input 
                   id="dueDate" 
                   type="date" 
+                  min={new Date().toISOString().split('T')[0]}
                   {...register("dueDate")} 
                 />
                 {errors.dueDate && <p className="text-sm text-red-500">{errors.dueDate.message}</p>}
