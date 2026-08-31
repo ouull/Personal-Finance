@@ -83,11 +83,19 @@ export async function POST(request: Request) {
           data: { balance: { increment: transactionAmount } }
         })
       } else if (type === "EXPENSE" && sourceAccountId) {
+        const sourceAcc = await tx.account.findUnique({ where: { id: sourceAccountId } })
+        if (!sourceAcc || Number(sourceAcc.balance) < transactionAmount) {
+          throw new Error("INSUFFICIENT_BALANCE")
+        }
         await tx.account.update({
           where: { id: sourceAccountId },
           data: { balance: { decrement: transactionAmount } }
         })
       } else if (type === "TRANSFER" && sourceAccountId && destinationAccountId) {
+        const sourceAcc = await tx.account.findUnique({ where: { id: sourceAccountId } })
+        if (!sourceAcc || Number(sourceAcc.balance) < transactionAmount) {
+          throw new Error("INSUFFICIENT_BALANCE")
+        }
         await tx.account.update({
           where: { id: sourceAccountId },
           data: { balance: { decrement: transactionAmount } }
@@ -108,6 +116,9 @@ export async function POST(request: Request) {
   } catch (error: any) {
     if (error.message === "Unauthorized account") {
       return NextResponse.json({ error: "Unauthorized account access" }, { status: 403 })
+    }
+    if (error.message === "INSUFFICIENT_BALANCE") {
+      return NextResponse.json({ error: "Saldo tidak mencukupi" }, { status: 400 })
     }
     console.error("Quick Capture Error:", error)
     return NextResponse.json({ error: "Gagal memproses transaksi" }, { status: 500 })

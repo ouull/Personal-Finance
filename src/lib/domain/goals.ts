@@ -76,6 +76,10 @@ export async function addGoalDeposit(userId: string, goalId: string, amount: num
     throw new Error("Account not found or unauthorized")
   }
 
+  if (Number(account.balance) < amount) {
+    throw new Error("INSUFFICIENT_BALANCE")
+  }
+
   return await db.$transaction(async (tx) => {
     // 1. Update goal amount
     const updatedGoal = await tx.goal.update({

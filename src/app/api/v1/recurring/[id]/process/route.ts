@@ -26,6 +26,9 @@ export async function POST(
     if (error.message === "Already processed or modified concurrently") {
       return NextResponse.json({ success: false, error: error.message }, { status: 409 })
     }
+    if (error.message === "INSUFFICIENT_BALANCE") {
+      return NextResponse.json({ success: false, error: "Saldo tidak mencukupi" }, { status: 400 })
+    }
     return NextResponse.json({ success: false, error: "Failed to process recurring payment" }, { status: 500 })
   }
 }

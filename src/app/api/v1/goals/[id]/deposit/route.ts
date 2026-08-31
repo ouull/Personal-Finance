@@ -36,6 +36,9 @@ export async function POST(
     if (error.message === "Goal not found or unauthorized") {
       return NextResponse.json({ success: false, error: "Not found" }, { status: 404 })
     }
+    if (error.message === "INSUFFICIENT_BALANCE") {
+      return NextResponse.json({ success: false, error: "Saldo tidak mencukupi" }, { status: 400 })
+    }
     return NextResponse.json({ success: false, error: "Failed to deposit to goal" }, { status: 500 })
   }
 }

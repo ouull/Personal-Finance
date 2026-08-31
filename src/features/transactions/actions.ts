@@ -31,7 +31,7 @@ export async function createTransaction(data: TransactionFormValues) {
     if (error.message === "Unauthorized" || error.message.startsWith("Unauthorized ")) {
       return { success: false, error: "Unauthorized" }
     }
-    if (error instanceof domain.TransactionError) {
+    if (error.name === "TransactionError") {
       if (error.code === "INSUFFICIENT_BALANCE") {
         return { success: false, error: "Saldo tidak mencukupi." }
       }
@@ -58,7 +58,7 @@ export async function updateTransaction(id: string, data: TransactionFormValues)
     if (error.message === "Unauthorized" || error.message.startsWith("Unauthorized ")) {
       return { success: false, error: "Unauthorized" }
     }
-    if (error instanceof domain.TransactionError) {
+    if (error.name === "TransactionError") {
       if (error.code === "INSUFFICIENT_BALANCE") {
         return { success: false, error: "Saldo tidak mencukupi." }
       }
@@ -84,7 +84,7 @@ export async function deleteTransaction(id: string) {
     if (error.message === "Unauthorized" || error.message.startsWith("Unauthorized ")) {
       return { success: false, error: "Unauthorized" }
     }
-    if (error instanceof domain.TransactionError) {
+    if (error.name === "TransactionError") {
       return { success: false, error: error.message }
     }
     console.error("Delete transaction error:", error)

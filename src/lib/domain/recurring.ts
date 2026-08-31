@@ -97,6 +97,11 @@ export async function processRecurringPayment(userId: string, id: string) {
     })
 
     // 2. Update account balance
+    const account = await tx.account.findUnique({ where: { id: payment.accountId } })
+    if (!account || Number(account.balance) < Number(payment.amount)) {
+      throw new Error("INSUFFICIENT_BALANCE")
+    }
+
     await tx.account.update({
       where: { id: payment.accountId },
       data: { balance: { decrement: payment.amount } }

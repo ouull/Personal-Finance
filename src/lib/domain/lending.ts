@@ -87,6 +87,7 @@ export async function createLoan(
     // 2. Adjust account balance
     const actualType = data.type || "LENT"
     if (actualType === "LENT") {
+      if (Number(account.balance) < data.amount) throw new Error("INSUFFICIENT_BALANCE")
       await tx.account.update({
         where: { id: data.accountId },
         data: { balance: { decrement: data.amount } }
@@ -178,6 +179,7 @@ export async function addRepayment(
         data: { balance: { increment: data.amount } }
       })
     } else {
+      if (Number(account.balance) < data.amount) throw new Error("INSUFFICIENT_BALANCE")
       await tx.account.update({
         where: { id: data.accountId },
         data: { balance: { decrement: data.amount } }

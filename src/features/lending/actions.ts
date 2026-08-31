@@ -45,6 +45,9 @@ export async function createLoan(data: {
     
     return { success: true }
   } catch (error: any) {
+    if (error.message === "INSUFFICIENT_BALANCE") {
+      return { success: false, error: "Saldo tidak mencukupi." }
+    }
     console.error("Create loan error:", error)
     return { success: false, error: "Failed to create loan" }
   }
@@ -69,6 +72,9 @@ export async function addRepayment(data: {
   } catch (error: any) {
     if (error.message === "Repayment exceeds outstanding amount") {
       return { success: false, error: error.message }
+    }
+    if (error.message === "INSUFFICIENT_BALANCE") {
+      return { success: false, error: "Saldo tidak mencukupi." }
     }
     console.error("Add repayment error:", error)
     return { success: false, error: "Failed to add repayment" }
