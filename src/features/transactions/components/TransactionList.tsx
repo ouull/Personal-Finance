@@ -124,7 +124,7 @@ export function TransactionList({ transactions, accounts = [], categories = [], 
             const isTransfer = t.type === "TRANSFER"
             
             return (
-              <Card key={t.id} className="p-4 flex items-center justify-between bg-white/60 backdrop-blur-md border-white/50 hover:bg-white/90 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 shadow-sm">
+              <Card key={t.id} className="p-4 flex flex-row items-center justify-between bg-white/60 backdrop-blur-md border-white/50 hover:bg-white/90 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 shadow-sm">
                 <div className="flex items-center gap-4">
                   <div className={`p-2 rounded-full ${
                     isInitial ? "bg-indigo-100 text-indigo-600"
@@ -137,29 +137,29 @@ export function TransactionList({ transactions, accounts = [], categories = [], 
                      <ArrowUpRight className="w-5 h-5" />}
                   </div>
                   
-                  <div>
-                    <p className="font-semibold text-slate-900 text-base">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-semibold text-slate-900 text-base truncate">
                       {t.description || (isIncome ? "Income" : isTransfer ? "Transfer" : "Expense")}
                     </p>
-                    <div className="flex items-center gap-1 text-sm text-muted-foreground mt-0.5">
+                    <div className="flex items-center gap-1 text-sm text-muted-foreground mt-0.5 truncate">
                       <span>{format(new Date(t.date), "dd MMM yyyy", { locale: id })}</span>
                       <span>•</span>
                       {isTransfer ? (
                         <span className="flex items-center gap-1">
-                          {t.sourceAccount?.name} <ArrowRightLeft className="w-3 h-3" /> {t.destinationAccount?.name}
+                          <span className="truncate">{t.sourceAccount?.name}</span> <ArrowRightLeft className="w-3 h-3 shrink-0" /> <span className="truncate">{t.destinationAccount?.name}</span>
                         </span>
                       ) : (
                         <span className="flex items-center gap-1">
-                          <Wallet className="w-3 h-3" />
-                          {isIncome ? t.destinationAccount?.name : t.sourceAccount?.name}
+                          <Wallet className="w-3 h-3 shrink-0" />
+                          <span className="truncate">{isIncome ? t.destinationAccount?.name : t.sourceAccount?.name}</span>
                         </span>
                       )}
                     </div>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3">
-                  <div className={`font-bold ${isIncome ? "text-emerald-600" : isTransfer ? "text-slate-900" : "text-slate-900"}`}>
+                <div className="flex items-center gap-3 shrink-0">
+                  <div className={`font-bold whitespace-nowrap ${isIncome ? "text-emerald-600" : isTransfer ? "text-slate-900" : "text-slate-900"}`}>
                     {isIncome ? "+" : isTransfer ? "" : "-"}{formatRupiah(Number(t.amount))}
                   </div>
                   <EditTransactionDialog transaction={t as any} accounts={accounts} categories={categories} groupTranslations={groupTranslations} />
