@@ -52,50 +52,34 @@ export async function resetAllFinancialData() {
 
     // Execute a massive transaction to delete everything except User and Merchant
     // Wait, let's delete Merchants too so they are fully reset.
-    // Order matters due to foreign keys.
-    // Prisma deleteMany will handle it if we do it independently, but we can do it in a transaction
+    // Use a sequential batch transaction to avoid serverless connection pool deadlocks.
+    // Batch transactions run queries in the exact array order using a single connection.
+    await db.$transaction([
+      db.notification.deleteMany({ where: { userId } }),
+      db.goal.deleteMany({ where: { userId } }),
+      db.budget.deleteMany({ where: { userId } }),
+      db.investmentTransaction.deleteMany({
+        where: { investment: { userId } },
+      }),
+      db.repayment.deleteMany({ where: { loan: { userId } } }),
+      db.transaction.deleteMany({ where: { userId } }),
 
-    await db.$transaction(
-      async (tx) => {
-        // Level 1: Leaf nodes and dependencies of others
-        await Promise.all([
-          tx.notification.deleteMany({ where: { userId } }),
-          tx.goal.deleteMany({ where: { userId } }),
-          tx.budget.deleteMany({ where: { userId } }),
-          tx.investmentTransaction.deleteMany({
-            where: { investment: { userId } },
-          }),
-          tx.repayment.deleteMany({ where: { loan: { userId } } }),
-          tx.transaction.deleteMany({ where: { userId } }),
-        ]);
+      db.recurringPayment.deleteMany({ where: { userId } }),
+      db.investment.deleteMany({ where: { userId } }),
+      db.loan.deleteMany({ where: { userId } }),
+      db.merchant.deleteMany({ where: { userId } }),
 
-        // Level 2: Intermediates
-        await Promise.all([
-          tx.recurringPayment.deleteMany({ where: { userId } }),
-          tx.investment.deleteMany({ where: { userId } }),
-          tx.loan.deleteMany({ where: { userId } }),
-          tx.merchant.deleteMany({ where: { userId } }),
-        ]);
+      db.account.deleteMany({ where: { userId } }),
+      db.category.deleteMany({ where: { userId } }),
+    ]);
 
-        // Level 3: Base tables
-        await Promise.all([
-          tx.account.deleteMany({ where: { userId } }),
-          tx.category.deleteMany({ where: { userId } }),
-        ]);
-
-        // Re-seed default Cash and Categories
-        await seedUserFinancialData(userId, tx);
-      },
-      {
-        maxWait: 5000, // default: 2000
-        timeout: 15000, // default: 5000
-      }
-    );
+    // Re-seed default Cash and Categories outside the main delete transaction
+    await seedUserFinancialData(userId);
 
     revalidatePath("/");
     return { success: true };
   } catch (error: any) {
     console.error("Reset data error:", error);
-    return { success: false, error: "Failed to reset data" };
+    return { success: false, error: error?.message || "Failed to reset data" };
   }
 }
