@@ -1,12 +1,12 @@
 /* eslint-disable react-hooks/incompatible-library */
 
-"use client"
+"use client";
 
-import { useState } from "react"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import { LoanFormValues, loanSchema } from "@/shared/schemas/lending"
-import { createLoan } from "../actions"
+import { useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { LoanFormValues, loanSchema } from "@/shared/schemas/lending";
+import { createLoan } from "../actions";
 import {
   Dialog,
   DialogContent,
@@ -14,74 +14,89 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogDescription,
-} from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Plus } from "lucide-react"
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Plus } from "lucide-react";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { toast } from "sonner"
-import { useTranslation } from "@/lib/TranslationContext"
+} from "@/components/ui/select";
+import { toast } from "sonner";
+import { useTranslation } from "@/lib/TranslationContext";
+import { useCurrency } from "@/lib/CurrencyContext";
 
 interface Account {
-  id: string
-  name: string
-  balance: any
+  id: string;
+  name: string;
+  balance?: any;
 }
 
 interface LoanDialogProps {
-  accounts: Account[]
+  accounts: Account[];
 }
 
 export function LoanDialog({ accounts }: LoanDialogProps) {
-  const { t } = useTranslation()
-  const [open, setOpen] = useState(false)
-  const [isPending, setIsPending] = useState(false)
+  const { t } = useTranslation();
+  const { formatRupiah } = useCurrency();
+  const [open, setOpen] = useState(false);
+  const [isPending, setIsPending] = useState(false);
 
-  const { register, handleSubmit, setValue, formState: { errors }, reset, watch } = useForm<LoanFormValues>({
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    formState: { errors },
+    reset,
+    watch,
+  } = useForm<LoanFormValues>({
     resolver: zodResolver(loanSchema) as any,
     defaultValues: {
       amount: 0,
       borrowerName: "",
       lentDate: new Date(),
-      type: "LENT"
+      type: "LENT",
     },
-  })
+  });
 
-  const loanType = watch("type")
+  const loanType = watch("type");
 
   async function onSubmit(data: LoanFormValues) {
-    setIsPending(true)
-    const result = await createLoan(data)
-    setIsPending(false)
+    setIsPending(true);
+    const result = await createLoan(data);
+    setIsPending(false);
 
     if (result.success) {
-      toast.success(t.common?.success || "Loan recorded successfully")
-      reset()
-      setOpen(false)
+      toast.success(t.common?.success || "Loan recorded successfully");
+      reset();
+      setOpen(false);
     } else {
-      toast.error(result.error || t.common?.error || "An error occurred")
+      toast.error(result.error || t.common?.error || "An error occurred");
     }
   }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={
-        <Button className="bg-primary hover:bg-primary/90">
-          <Plus className="mr-2 h-4 w-4" /> {t.lendingPage?.addLoan || "Add Record"}
-        </Button>
-      } />
+      <DialogTrigger
+        render={
+          <Button className="bg-primary hover:bg-primary/90">
+            <Plus className="mr-2 h-4 w-4" />{" "}
+            {t.lendingPage?.addLoan || "Add Record"}
+          </Button>
+        }
+      />
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>{t.lendingPage?.recordLoan || "Record New Loan"}</DialogTitle>
+          <DialogTitle>
+            {t.lendingPage?.recordLoan || "Record New Loan"}
+          </DialogTitle>
           <DialogDescription>
-            {t.lendingPage?.loanDescription || "Record money you've lent to someone. This will deduct from your account balance."}
+            {t.lendingPage?.loanDescription ||
+              "Record money you've lent to someone. This will deduct from your account balance."}
           </DialogDescription>
         </DialogHeader>
         {accounts.length === 0 ? (
@@ -109,26 +124,34 @@ export function LoanDialog({ accounts }: LoanDialogProps) {
 
             <div className="space-y-2">
               <Label htmlFor="borrowerName">
-                {loanType === "LENT" 
-                  ? (t.lendingPage?.borrowerName || "Nama Peminjam") 
-                  : (t.lendingPage?.lenderName || "Nama Pemberi Pinjaman")}
+                {loanType === "LENT"
+                  ? t.lendingPage?.borrowerName || "Nama Peminjam"
+                  : t.lendingPage?.lenderName || "Nama Pemberi Pinjaman"}
               </Label>
-              <Input 
-                id="borrowerName" 
-                placeholder={loanType === "LENT" ? "Cth. Budi" : "Cth. Bank / Teman"} 
-                {...register("borrowerName")} 
+              <Input
+                id="borrowerName"
+                placeholder={
+                  loanType === "LENT" ? t.lendingPage?.borrowerPlaceholder || "Cth. Budi" : "Cth. Bank / Teman"
+                }
+                {...register("borrowerName")}
               />
-              {errors.borrowerName && <p className="text-sm text-red-500">{errors.borrowerName.message}</p>}
+              {errors.borrowerName && (
+                <p className="text-sm text-red-500">
+                  {errors.borrowerName.message}
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="amount">{t.lendingPage?.amount || "Amount"} (Rp)</Label>
-              <Input 
-                id="amount" 
-                type="text" 
+              <Label htmlFor="amount">
+                {t.lendingPage?.amount || "Amount"} (Rp)
+              </Label>
+              <Input
+                id="amount"
+                type="text"
                 inputMode="numeric"
-                placeholder="0" 
-                className="text-lg font-bold" 
+                placeholder="0"
+                className="text-lg font-bold"
                 value={(() => {
                   const val = watch("amount");
                   if (!val) return "";
@@ -136,78 +159,124 @@ export function LoanDialog({ accounts }: LoanDialogProps) {
                 })()}
                 onChange={(e) => {
                   const rawValue = e.target.value.replace(/\D/g, "");
-                  setValue("amount", rawValue ? Number(rawValue) : 0, { shouldValidate: true });
+                  setValue("amount", rawValue ? Number(rawValue) : 0, {
+                    shouldValidate: true,
+                  });
                 }}
               />
-              {errors.amount && <p className="text-sm text-red-500">{errors.amount.message}</p>}
+              {errors.amount && (
+                <p className="text-sm text-red-500">{errors.amount.message}</p>
+              )}
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="accountId">
-                {loanType === "LENT" 
-                  ? (t.lendingPage?.sourceAccount || "Gunakan Saldo Dari Akun")
-                  : (t.lendingPage?.destAccount || "Simpan Saldo Ke Akun")}
+                {loanType === "LENT"
+                  ? t.lendingPage?.sourceAccount || "Gunakan Saldo Dari Akun"
+                  : t.lendingPage?.destAccount || "Simpan Saldo Ke Akun"}
               </Label>
-              <Select 
-                value={watch("accountId") || undefined}
-                onValueChange={(val: any) => setValue("accountId", val, { shouldValidate: true })} 
+              <Select
+                value={watch("accountId") || ""}
+                onValueChange={(val: any) =>
+                  setValue("accountId", val, { shouldValidate: true })
+                }
               >
                 <SelectTrigger id="accountId">
                   {watch("accountId") ? (
                     <span className="flex flex-1 text-left line-clamp-1">
-                      {accounts.find((a: any) => a.id === watch("accountId"))?.name}
+                      {
+                        accounts.find((a: any) => a.id === watch("accountId"))
+                          ?.name
+                      }
                     </span>
                   ) : (
-                    <SelectValue placeholder={t.transactionsPage?.selectAccount || "Select account"} />
+                    <SelectValue
+                      placeholder={
+                        t.transactionsPage?.selectAccount || "Select account"
+                      }
+                    />
                   )}
                 </SelectTrigger>
                 <SelectContent>
                   {accounts.map((acc) => (
                     <SelectItem key={acc.id} value={acc.id}>
-                      {acc.name}
+                      <div className="flex items-center justify-between flex-1 w-full gap-3 py-1">
+                        <span className="font-medium text-slate-700 truncate">{acc.name}</span>
+                        <span className="text-xs font-semibold text-slate-600 bg-slate-100/80 ring-1 ring-slate-200/50 px-2.5 py-1 rounded-full shrink-0 whitespace-nowrap shadow-sm">
+                          {formatRupiah(Number((acc as any).balance || 0))}
+                        </span>
+                      </div>
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-              {errors.accountId && <p className="text-sm text-red-500">{errors.accountId.message}</p>}
+              {errors.accountId && (
+                <p className="text-sm text-red-500">
+                  {errors.accountId.message}
+                </p>
+              )}
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="lentDate">{t.lendingPage?.lentDate || "Lent Date"}</Label>
-                <Input 
-                  id="lentDate" 
-                  type="date" 
-                  {...register("lentDate")} 
-                  defaultValue={new Date().toISOString().split('T')[0]}
+                <Label htmlFor="lentDate">
+                  {t.lendingPage?.lentDate || "Lent Date"}
+                </Label>
+                <Input
+                  id="lentDate"
+                  type="date"
+                  {...register("lentDate")}
+                  defaultValue={new Date().toISOString().split("T")[0]}
                 />
-                {errors.lentDate && <p className="text-sm text-red-500">{errors.lentDate.message}</p>}
+                {errors.lentDate && (
+                  <p className="text-sm text-red-500">
+                    {errors.lentDate.message}
+                  </p>
+                )}
               </div>
-              
+
               <div className="space-y-2">
-                <Label htmlFor="dueDate">{t.lendingPage?.dueDate || "Due Date (Optional)"}</Label>
-                <Input 
-                  id="dueDate" 
-                  type="date" 
-                  min={new Date().toISOString().split('T')[0]}
-                  {...register("dueDate")} 
+                <Label htmlFor="dueDate">
+                  {t.lendingPage?.dueDate || "Due Date (Optional)"}
+                </Label>
+                <Input
+                  id="dueDate"
+                  type="date"
+                  min={new Date().toISOString().split("T")[0]}
+                  {...register("dueDate")}
                 />
-                {errors.dueDate && <p className="text-sm text-red-500">{errors.dueDate.message}</p>}
+                {errors.dueDate && (
+                  <p className="text-sm text-red-500">
+                    {errors.dueDate.message}
+                  </p>
+                )}
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="notes">{t.lendingPage?.notes || "Notes (Optional)"}</Label>
-              <Input id="notes" placeholder={t.lendingPage?.notesPlaceholder || "Reason or terms"} {...register("notes")} />
-              {errors.notes && <p className="text-sm text-red-500">{errors.notes.message}</p>}
+              <Label htmlFor="notes">
+                {t.lendingPage?.notes || "Notes (Optional)"}
+              </Label>
+              <Input
+                id="notes"
+                placeholder={
+                  t.lendingPage?.notesPlaceholder || "Reason or terms"
+                }
+                {...register("notes")}
+              />
+              {errors.notes && (
+                <p className="text-sm text-red-500">{errors.notes.message}</p>
+              )}
             </div>
 
             <Button type="submit" className="w-full" disabled={isPending}>
-              {isPending ? (t.common?.loading || "Saving...") : (t.common?.save || "Record Loan")}
+              {isPending
+                ? t.common?.loading || "Saving..."
+                : t.common?.save || "Record Loan"}
             </Button>
           </form>
         )}
       </DialogContent>
     </Dialog>
-  )
+  );
 }

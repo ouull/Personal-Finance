@@ -1,55 +1,75 @@
 /* eslint-disable react-hooks/incompatible-library */
 
-"use client"
+"use client";
 
-import { useState } from "react"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import { TransactionFormValues, transactionSchema } from "@/shared/schemas/transactions"
-import { createTransaction } from "../actions"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import {
+  TransactionFormValues,
+  transactionSchema,
+} from "@/shared/schemas/transactions";
+import { createTransaction } from "../actions";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { CategoryPicker } from "@/components/CategoryPicker"
-import { Tabs,  TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { toast } from "sonner"
-import { useTranslation } from "@/lib/TranslationContext"
+} from "@/components/ui/select";
+import { CategoryPicker } from "@/components/CategoryPicker";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { toast } from "sonner";
+import { useTranslation } from "@/lib/TranslationContext";
+import { useCurrency } from "@/lib/CurrencyContext";
 
 interface Account {
-  id: string
-  name: string
-  balance: any
+  id: string;
+  name: string;
+  balance?: any;
 }
 
 interface Category {
-  id: string
-  name: string
-  type: string
-  icon?: string | null
+  id: string;
+  name: string;
+  type: string;
+  icon?: string | null;
 }
 
 interface TransactionFormProps {
-  accounts: Account[]
-  categories?: Category[]
-  groupTranslations?: Record<string, string>
-  onSuccess?: () => void
+  accounts: Account[];
+  categories?: Category[];
+  groupTranslations?: Record<string, string>;
+  onSuccess?: () => void;
 }
 
-export function TransactionForm({ accounts, categories = [], groupTranslations = {}, onSuccess }: TransactionFormProps) {
-  const { t } = useTranslation()
-  const [isPending, setIsPending] = useState(false)
-  const [activeTab, setActiveTab] = useState<"EXPENSE" | "INCOME" | "TRANSFER">("EXPENSE")
+export function TransactionForm({
+  accounts,
+  categories = [],
+  groupTranslations = {},
+  onSuccess,
+}: TransactionFormProps) {
+  const { t } = useTranslation();
+  const { formatRupiah } = useCurrency();
+  const [isPending, setIsPending] = useState(false);
+  const [activeTab, setActiveTab] = useState<"EXPENSE" | "INCOME" | "TRANSFER">(
+    "EXPENSE",
+  );
 
-  const filteredCategories = categories.filter(c => c.type === activeTab)
+  const filteredCategories = categories.filter((c) => c.type === activeTab);
 
-  const { register, handleSubmit, setValue, formState: { errors }, reset, clearErrors, watch } = useForm<TransactionFormValues>({
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    formState: { errors },
+    reset,
+    clearErrors,
+    watch,
+  } = useForm<TransactionFormValues>({
     resolver: zodResolver(transactionSchema) as any,
     defaultValues: {
       type: "EXPENSE",
@@ -57,53 +77,62 @@ export function TransactionForm({ accounts, categories = [], groupTranslations =
       description: "",
       date: new Date(),
     },
-  })
+  });
 
-  const sourceAccountIdVal = watch("sourceAccountId")
-  const destinationAccountIdVal = watch("destinationAccountId")
+  const sourceAccountIdVal = watch("sourceAccountId");
+  const destinationAccountIdVal = watch("destinationAccountId");
 
   // Perbarui tipe saat tab berubah
   const handleTabChange = (val: string) => {
-    const type = val as "EXPENSE" | "INCOME" | "TRANSFER"
-    setActiveTab(type)
-    setValue("type", type)
-    clearErrors() // Bersihkan error saat ganti tab
-  }
+    const type = val as "EXPENSE" | "INCOME" | "TRANSFER";
+    setActiveTab(type);
+    setValue("type", type);
+    clearErrors(); // Bersihkan error saat ganti tab
+  };
 
   async function onSubmit(data: TransactionFormValues) {
-    setIsPending(true)
-    const result = await createTransaction(data)
-    setIsPending(false)
+    setIsPending(true);
+    const result = await createTransaction(data);
+    setIsPending(false);
 
     if (result.success) {
-      toast.success(t.common?.success || "Berhasil")
-      reset()
-      onSuccess?.()
+      toast.success(t.common?.success || "Berhasil");
+      reset();
+      onSuccess?.();
     } else {
-      const errorMessage = result.error && t.errors && t.errors[result.error] 
-        ? t.errors[result.error] 
-        : (result.error || t.common?.error || "Gagal")
-      toast.error(errorMessage as string)
+      const errorMessage =
+        result.error && t.errors && t.errors[result.error]
+          ? t.errors[result.error]
+          : result.error || t.common?.error || "Gagal";
+      toast.error(errorMessage as string);
     }
   }
 
   return (
     <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
       <TabsList className="grid w-full grid-cols-3 mb-6">
-        <TabsTrigger value="EXPENSE">{t.transactionsPage?.expense || "Expense"}</TabsTrigger>
-        <TabsTrigger value="INCOME">{t.transactionsPage?.income || "Income"}</TabsTrigger>
-        <TabsTrigger value="TRANSFER">{t.transactionsPage?.transfer || "Transfer"}</TabsTrigger>
+        <TabsTrigger value="EXPENSE">
+          {t.transactionsPage?.expense || "Expense"}
+        </TabsTrigger>
+        <TabsTrigger value="INCOME">
+          {t.transactionsPage?.income || "Income"}
+        </TabsTrigger>
+        <TabsTrigger value="TRANSFER">
+          {t.transactionsPage?.transfer || "Transfer"}
+        </TabsTrigger>
       </TabsList>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="amount">{t.transactionsPage?.amount || "Amount"}</Label>
-          <Input 
-            id="amount" 
-            type="text" 
+          <Label htmlFor="amount">
+            {t.transactionsPage?.amount || "Amount"}
+          </Label>
+          <Input
+            id="amount"
+            type="text"
             inputMode="numeric"
-            placeholder="0" 
-            className="text-lg font-bold" 
+            placeholder="0"
+            className="text-lg font-bold"
             value={(() => {
               const val = watch("amount");
               if (!val) return "";
@@ -111,92 +140,196 @@ export function TransactionForm({ accounts, categories = [], groupTranslations =
             })()}
             onChange={(e) => {
               const rawValue = e.target.value.replace(/\D/g, "");
-              setValue("amount", rawValue ? Number(rawValue) : 0, { shouldValidate: true });
+              setValue("amount", rawValue ? Number(rawValue) : 0, {
+                shouldValidate: true,
+              });
             }}
           />
-          {errors.amount && <p className="text-sm text-red-500">{errors.amount.message}</p>}
+          {errors.amount && (
+            <p className="text-sm text-red-500">{errors.amount.message}</p>
+          )}
         </div>
 
         {(activeTab === "EXPENSE" || activeTab === "TRANSFER") && (
           <div className="space-y-2">
-            <Label htmlFor="sourceAccountId">{activeTab === "TRANSFER" ? (t.transactionsPage?.sourceAccount || "From Account") : (t.transactionsPage?.payFrom || "Pay from")}</Label>
-            <Select 
+            <Label htmlFor="sourceAccountId">
+              {activeTab === "TRANSFER"
+                ? t.transactionsPage?.sourceAccount || "From Account"
+                : t.transactionsPage?.payFrom || "Pay from"}
+            </Label>
+            <Select
               value={sourceAccountIdVal || ""}
-              onValueChange={(val) => setValue("sourceAccountId", (val || undefined) as any, { shouldValidate: true })} 
+              onValueChange={(val) =>
+                setValue("sourceAccountId", (val || undefined) as any, {
+                  shouldValidate: true,
+                })
+              }
             >
               <SelectTrigger id="sourceAccountId">
                 {sourceAccountIdVal ? (
-                  <span data-slot="select-value" className="flex flex-1 text-left line-clamp-1">
-                    {accounts.find((a: any) => a.id === sourceAccountIdVal)?.name}
+                  <span
+                    data-slot="select-value"
+                    className="flex flex-1 text-left line-clamp-1"
+                  >
+                    {
+                      accounts.find((a: any) => a.id === sourceAccountIdVal)
+                        ?.name
+                    }
                   </span>
                 ) : (
-                  <SelectValue placeholder={t.transactionsPage?.selectAccount || "Select account"} />
+                  <SelectValue
+                    placeholder={
+                      t.transactionsPage?.selectAccount || "Select account"
+                    }
+                  />
                 )}
               </SelectTrigger>
               <SelectContent>
                 {accounts.map((acc) => (
                   <SelectItem key={acc.id} value={acc.id}>
-                    {acc.name}
+                    <div className="flex items-center justify-between flex-1 w-full gap-3 py-1">
+                      <span className="font-medium text-slate-700 truncate">{acc.name}</span>
+                      <span className="text-xs font-semibold text-slate-600 bg-slate-100/80 ring-1 ring-slate-200/50 px-2.5 py-1 rounded-full shrink-0 whitespace-nowrap shadow-sm">
+                        {formatRupiah(Number(acc.balance || 0))}
+                      </span>
+                    </div>
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            {errors.sourceAccountId && <p className="text-sm text-red-500">{errors.sourceAccountId.message}</p>}
+            {errors.sourceAccountId && (
+              <p className="text-sm text-red-500">
+                {errors.sourceAccountId.message}
+              </p>
+            )}
           </div>
         )}
 
         {(activeTab === "EXPENSE" || activeTab === "INCOME") && (
           <div className="space-y-2">
-            <Label htmlFor="categoryId">{t.transactionsPage?.category || "Category"}</Label>
+            <Label htmlFor="categoryId">
+              {t.transactionsPage?.category || "Category"}
+            </Label>
             <CategoryPicker
               categories={filteredCategories}
               value={watch("categoryId") || ""}
-              onChange={(val) => setValue("categoryId", val as any, { shouldValidate: true })}
+              onChange={(val) =>
+                setValue("categoryId", val as any, { shouldValidate: true })
+              }
               error={!!errors.categoryId}
               groupTranslations={groupTranslations}
             />
-            {errors.categoryId && <p className="text-sm text-red-500">{errors.categoryId.message}</p>}
+            {errors.categoryId && (
+              <p className="text-sm text-red-500">
+                {errors.categoryId.message}
+              </p>
+            )}
           </div>
         )}
 
         {(activeTab === "INCOME" || activeTab === "TRANSFER") && (
           <div className="space-y-2">
-            <Label htmlFor="destinationAccountId">{activeTab === "TRANSFER" ? (t.transactionsPage?.destinationAccount || "To Account") : (t.transactionsPage?.depositTo || "Deposit to")}</Label>
-            <Select 
+            <Label htmlFor="destinationAccountId">
+              {activeTab === "TRANSFER"
+                ? t.transactionsPage?.destinationAccount || "To Account"
+                : t.transactionsPage?.depositTo || "Deposit to"}
+            </Label>
+            <Select
               value={destinationAccountIdVal || ""}
-              onValueChange={(val) => setValue("destinationAccountId", (val || undefined) as any, { shouldValidate: true })} 
+              onValueChange={(val) =>
+                setValue("destinationAccountId", (val || undefined) as any, {
+                  shouldValidate: true,
+                })
+              }
             >
               <SelectTrigger id="destinationAccountId">
                 {destinationAccountIdVal ? (
-                  <span data-slot="select-value" className="flex flex-1 text-left line-clamp-1">
-                    {accounts.find((a: any) => a.id === destinationAccountIdVal)?.name}
+                  <span
+                    data-slot="select-value"
+                    className="flex flex-1 text-left line-clamp-1"
+                  >
+                    {
+                      accounts.find(
+                        (a: any) => a.id === destinationAccountIdVal,
+                      )?.name
+                    }
                   </span>
                 ) : (
-                  <SelectValue placeholder={t.transactionsPage?.selectAccount || "Select account"} />
+                  <SelectValue
+                    placeholder={
+                      t.transactionsPage?.selectAccount || "Select account"
+                    }
+                  />
                 )}
               </SelectTrigger>
               <SelectContent>
                 {accounts.map((acc) => (
-                  <SelectItem key={acc.id} value={acc.id} disabled={acc.id === watch("sourceAccountId")}>
-                    {acc.name}
+                  <SelectItem
+                    key={acc.id}
+                    value={acc.id}
+                    disabled={acc.id === watch("sourceAccountId")}
+                  >
+                    <div className="flex items-center justify-between flex-1 w-full gap-3 py-1">
+                      <span className="font-medium text-slate-700 truncate">{acc.name}</span>
+                      <span className="text-xs font-semibold text-slate-600 bg-slate-100/80 ring-1 ring-slate-200/50 px-2.5 py-1 rounded-full shrink-0 whitespace-nowrap shadow-sm">
+                        {formatRupiah(Number(acc.balance || 0))}
+                      </span>
+                    </div>
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            {errors.destinationAccountId && <p className="text-sm text-red-500">{errors.destinationAccountId.message}</p>}
+            {errors.destinationAccountId && (
+              <p className="text-sm text-red-500">
+                {errors.destinationAccountId.message}
+              </p>
+            )}
           </div>
         )}
 
         <div className="space-y-2">
-          <Label htmlFor="description">{t.transactionsPage?.note || "Note (Optional)"}</Label>
-          <Input id="description" placeholder={t.transactionsPage?.notePlaceholder || "e.g. Lunch, Salary, etc"} {...register("description")} />
-          {errors.description && <p className="text-sm text-red-500">{errors.description.message}</p>}
+          <Label htmlFor="merchantName">
+            {t.quickCapture?.merchant || "Merchant (Optional)"}
+          </Label>
+          <Input
+            id="merchantName"
+            placeholder="e.g. Starbucks, Steam, etc"
+            {...register("merchantName")}
+          />
+          {errors.merchantName && (
+            <p className="text-sm text-red-500">
+              {errors.merchantName.message}
+            </p>
+          )}
         </div>
 
-        <Button type="submit" className="w-full font-bold" size="lg" disabled={isPending}>
-          {isPending ? (t.common?.saving || "Saving...") : (t.common?.saveTransaction || "Save Transaction")}
+        <div className="space-y-2">
+          <Label htmlFor="description">
+            {t.transactionsPage?.note || "Note (Optional)"}
+          </Label>
+          <Input
+            id="description"
+            placeholder={
+              t.transactionsPage?.notePlaceholder || "What was this for?"
+            }
+            {...register("description")}
+          />
+          {errors.description && (
+            <p className="text-sm text-red-500">{errors.description.message}</p>
+          )}
+        </div>
+
+        <Button
+          type="submit"
+          className="w-full font-bold"
+          size="lg"
+          disabled={isPending}
+        >
+          {isPending
+            ? t.common?.saving || "Saving..."
+            : t.transactionsPage?.saveTransaction || "Save Transaction"}
         </Button>
       </form>
     </Tabs>
-  )
+  );
 }

@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { useState } from "react"
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -8,15 +8,15 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { PlusCircle } from "lucide-react"
-import { AccountForm } from "./AccountForm"
-import { useTranslation } from "@/lib/TranslationContext"
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { PlusCircle } from "lucide-react";
+import { AccountForm } from "./AccountForm";
+import { useTranslation } from "@/lib/TranslationContext";
 
 export function AccountDialog() {
-  const { t } = useTranslation()
-  const [open, setOpen] = useState(false)
+  const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -26,13 +26,16 @@ export function AccountDialog() {
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>{t.accountsPage?.addAccount || "Add New Account"}</DialogTitle>
+          <DialogTitle>
+            {t.accountsPage?.addAccount || "Add New Account"}
+          </DialogTitle>
           <DialogDescription>
-            {t.accountsPage?.description || "Enter the details of your new account."}
+            {t.accountsPage?.description ||
+              "Enter the details of your new account."}
           </DialogDescription>
         </DialogHeader>
         <AccountForm onSuccess={() => setOpen(false)} />
       </DialogContent>
     </Dialog>
-  )
+  );
 }

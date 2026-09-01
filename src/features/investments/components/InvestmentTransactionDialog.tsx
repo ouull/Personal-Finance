@@ -1,12 +1,15 @@
 /* eslint-disable react-hooks/incompatible-library */
 
-"use client"
+"use client";
 
-import { useState } from "react"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import { InvestmentTransactionFormValues, investmentTransactionSchema } from "@/shared/schemas/investments"
-import { addInvestmentTransaction } from "../actions"
+import { useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import {
+  InvestmentTransactionFormValues,
+  investmentTransactionSchema,
+} from "@/shared/schemas/investments";
+import { addInvestmentTransaction } from "../actions";
 import {
   Dialog,
   DialogContent,
@@ -14,42 +17,54 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogDescription,
-} from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { ArrowLeftRight } from "lucide-react"
-import { toast } from "sonner"
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { ArrowLeftRight } from "lucide-react";
+import { toast } from "sonner";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+} from "@/components/ui/select";
+import { useCurrency } from "@/lib/CurrencyContext";
 
 interface Account {
-  id: string
-  name: string
+  id: string;
+  name: string;
+  balance?: any;
 }
 
 interface Investment {
-  id: string
-  name: string
-  currentValue: number
-  cashBalance: number
+  id: string;
+  name: string;
+  currentValue: number;
+  cashBalance: number;
 }
 
 interface InvestmentTransactionDialogProps {
-  accounts: Account[]
-  investment: Investment
+  accounts: Account[];
+  investment: Investment;
 }
 
-export function InvestmentTransactionDialog({ accounts, investment }: InvestmentTransactionDialogProps) {
-  const [open, setOpen] = useState(false)
-  const [isPending, setIsPending] = useState(false)
+export function InvestmentTransactionDialog({
+  accounts,
+  investment,
+}: InvestmentTransactionDialogProps) {
+  const { formatRupiah } = useCurrency();
+  const [open, setOpen] = useState(false);
+  const [isPending, setIsPending] = useState(false);
 
-  const { handleSubmit, setValue, formState: { errors }, reset, watch } = useForm<InvestmentTransactionFormValues>({
+  const {
+    handleSubmit,
+    setValue,
+    formState: { errors },
+    reset,
+    watch,
+  } = useForm<InvestmentTransactionFormValues>({
     resolver: zodResolver(investmentTransactionSchema) as any,
     defaultValues: {
       investmentId: investment.id,
@@ -57,47 +72,51 @@ export function InvestmentTransactionDialog({ accounts, investment }: Investment
       amount: 0,
       date: new Date(),
     },
-  })
+  });
 
   async function onSubmit(data: InvestmentTransactionFormValues) {
     if (data.type === "SELL" && data.amount > investment.currentValue) {
-      toast.error("Cannot sell more than current value")
-      return
+      toast.error("Cannot sell more than current value");
+      return;
     }
     if (data.type === "WITHDRAW" && data.amount > investment.cashBalance) {
-      toast.error("Cannot withdraw more than cash balance")
-      return
+      toast.error("Cannot withdraw more than cash balance");
+      return;
     }
     if ((data.type === "BUY" || data.type === "WITHDRAW") && !data.accountId) {
-      toast.error("Account is required for this transaction type")
-      return
+      toast.error("Account is required for this transaction type");
+      return;
     }
 
-    setIsPending(true)
-    const result = await addInvestmentTransaction(data)
-    setIsPending(false)
+    setIsPending(true);
+    const result = await addInvestmentTransaction(data);
+    setIsPending(false);
 
     if (result.success) {
-      toast.success("Transaction recorded")
+      toast.success("Transaction recorded");
       reset({
         investmentId: investment.id,
         type: "BUY",
         amount: 0,
         date: new Date(),
-      })
-      setOpen(false)
+      });
+      setOpen(false);
     } else {
-      toast.error(result.error || "Failed to record transaction")
+      toast.error(result.error || "Failed to record transaction");
     }
   }
 
-  const txTypes = ["BUY", "SELL", "WITHDRAW", "DIVIDEND", "INTEREST", "FEE"]
+  const txTypes = ["BUY", "SELL", "WITHDRAW", "DIVIDEND", "INTEREST", "FEE"];
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button variant="outline" size="sm" className="text-xs h-8">
-          <ArrowLeftRight className="mr-2 h-3 w-3" /> Transact
-        </Button>} />
+      <DialogTrigger
+        render={
+          <Button variant="outline" size="sm" className="text-xs h-8">
+            <ArrowLeftRight className="mr-2 h-3 w-3" /> Transact
+          </Button>
+        }
+      />
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Transact: {investment.name}</DialogTitle>
@@ -106,12 +125,13 @@ export function InvestmentTransactionDialog({ accounts, investment }: Investment
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          
           <div className="space-y-2">
             <Label htmlFor="type">Transaction Type</Label>
-            <Select 
+            <Select
               value={watch("type")}
-              onValueChange={(val: any) => setValue("type", val as any, { shouldValidate: true })} 
+              onValueChange={(val: any) =>
+                setValue("type", val as any, { shouldValidate: true })
+              }
             >
               <SelectTrigger id="type">
                 <SelectValue placeholder="Select type" />
@@ -124,17 +144,19 @@ export function InvestmentTransactionDialog({ accounts, investment }: Investment
                 ))}
               </SelectContent>
             </Select>
-            {errors.type && <p className="text-sm text-red-500">{errors.type.message}</p>}
+            {errors.type && (
+              <p className="text-sm text-red-500">{errors.type.message}</p>
+            )}
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="amount">Amount (Rp)</Label>
-            <Input 
-              id="amount" 
-              type="text" 
+            <Input
+              id="amount"
+              type="text"
               inputMode="numeric"
-              placeholder="0" 
-              className="text-lg font-bold" 
+              placeholder="0"
+              className="text-lg font-bold"
               value={(() => {
                 const val = watch("amount");
                 if (!val) return "";
@@ -142,60 +164,92 @@ export function InvestmentTransactionDialog({ accounts, investment }: Investment
               })()}
               onChange={(e) => {
                 const rawValue = e.target.value.replace(/\D/g, "");
-                setValue("amount", rawValue ? Number(rawValue) : 0, { shouldValidate: true });
+                setValue("amount", rawValue ? Number(rawValue) : 0, {
+                  shouldValidate: true,
+                });
               }}
             />
-            {errors.amount && <p className="text-sm text-red-500">{errors.amount.message}</p>}
+            {errors.amount && (
+              <p className="text-sm text-red-500">{errors.amount.message}</p>
+            )}
           </div>
 
           {watch("type") !== "SELL" && (
             <div className="space-y-2">
               <Label htmlFor="accountId">
-                Related Account {(watch("type") === "BUY" || watch("type") === "WITHDRAW") ? "" : "(Optional)"}
+                Related Account{" "}
+                {watch("type") === "BUY" || watch("type") === "WITHDRAW"
+                  ? ""
+                  : "(Optional)"}
               </Label>
-            <Select 
-              value={watch("accountId") || ""}
-              onValueChange={(val) => setValue("accountId", val as any, { shouldValidate: true })} 
-            >
-              <SelectTrigger id="accountId">
-                {watch("accountId") ? (
-                  <span data-slot="select-value" className="flex flex-1 text-left line-clamp-1">
-                    {accounts.find(a => a.id === watch("accountId"))?.name}
-                  </span>
-                ) : (
-                  <SelectValue placeholder="No account / External" />
-                )}
-              </SelectTrigger>
-              <SelectContent>
-                {accounts.map((acc) => (
-                  <SelectItem key={acc.id} value={acc.id}>
-                    {acc.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {errors.accountId && <p className="text-sm text-red-500">{errors.accountId.message as string}</p>}
-          </div>
+              <Select
+                value={watch("accountId") || ""}
+                onValueChange={(val) =>
+                  setValue("accountId", val as any, { shouldValidate: true })
+                }
+              >
+                <SelectTrigger id="accountId">
+                  {watch("accountId") ? (
+                    <span
+                      data-slot="select-value"
+                      className="flex flex-1 text-left line-clamp-1"
+                    >
+                      {accounts.find((a) => a.id === watch("accountId"))?.name}
+                    </span>
+                  ) : (
+                    <SelectValue placeholder="No account / External" />
+                  )}
+                </SelectTrigger>
+                <SelectContent>
+                  {accounts.map((acc) => (
+                    <SelectItem key={acc.id} value={acc.id}>
+                      <div className="flex items-center justify-between flex-1 w-full gap-2 pr-1">
+                        <span className="truncate">{acc.name}</span>
+                        <span className="text-xs text-slate-500 font-medium bg-slate-100 px-1.5 py-0.5 rounded-md shrink-0 whitespace-nowrap">
+                          {formatRupiah(Number((acc as any).balance || 0))}
+                        </span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.accountId && (
+                <p className="text-sm text-red-500">
+                  {errors.accountId.message as string}
+                </p>
+              )}
+            </div>
           )}
 
           <div className="space-y-2">
             <Label htmlFor="date">Date</Label>
-            <Input 
-              id="date" 
+            <Input
+              id="date"
               type="date"
-              defaultValue={new Date().toISOString().split('T')[0]}
+              defaultValue={new Date().toISOString().split("T")[0]}
               onChange={(e) => {
-                setValue("date", e.target.value ? new Date(e.target.value) : new Date(), { shouldValidate: true });
-              }} 
+                setValue(
+                  "date",
+                  e.target.value ? new Date(e.target.value) : new Date(),
+                  { shouldValidate: true },
+                );
+              }}
             />
-            {errors.date && <p className="text-sm text-red-500">{errors.date.message}</p>}
+            {errors.date && (
+              <p className="text-sm text-red-500">{errors.date.message}</p>
+            )}
           </div>
 
-          <Button type="submit" className="w-full font-bold" size="lg" disabled={isPending}>
+          <Button
+            type="submit"
+            className="w-full font-bold"
+            size="lg"
+            disabled={isPending}
+          >
             {isPending ? "Saving..." : "Save Transaction"}
           </Button>
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

@@ -1,6 +1,10 @@
-import { db } from "@/lib/db"
+import { db } from "@/lib/db";
 
-async function getOrCreateInvestmentCategory(tx: any, userId: string, type: "INCOME" | "EXPENSE") {
+async function getOrCreateInvestmentCategory(
+  tx: any,
+  userId: string,
+  type: "INCOME" | "EXPENSE",
+) {
   const slug = type === "EXPENSE" ? "investment_expense" : "investment_income";
   let cat = await tx.category.findFirst({ where: { userId, slug } });
   if (!cat) {
@@ -13,8 +17,8 @@ async function getOrCreateInvestmentCategory(tx: any, userId: string, type: "INC
         icon: "TrendingUp",
         color: type === "EXPENSE" ? "blue" : "emerald",
         isDefault: true,
-        isActive: true
-      }
+        isActive: true,
+      },
     });
   }
   return cat.id;
@@ -25,9 +29,9 @@ export async function getInvestments(userId: string) {
     where: { userId },
     orderBy: { createdAt: "desc" },
     include: {
-      transactions: true
-    }
-  })
+      transactions: true,
+    },
+  });
 
   const serializedInvestments = investments.map((inv) => ({
     ...inv,
@@ -42,32 +46,62 @@ export async function getInvestments(userId: string) {
       ...t,
       amount: Number(t.amount),
       notes: t.notes || undefined,
-      accountId: t.accountId || undefined
-    }))
-  }))
+      accountId: t.accountId || undefined,
+    })),
+  }));
 
-  return serializedInvestments
+  return serializedInvestments;
+}
+
+export async function getInvestmentTransactions(
+  userId: string,
+  investmentId: string,
+) {
+  // First verify the investment belongs to the user
+  const inv = await db.investment.findUnique({
+    where: { id: investmentId, userId },
+    select: { id: true },
+  });
+
+  if (!inv) throw new Error("Investment not found or unauthorized");
+
+  const transactions = await db.investmentTransaction.findMany({
+    where: { investmentId },
+    orderBy: { date: "desc" },
+    include: {
+      account: { select: { name: true } },
+    },
+  });
+
+  return transactions.map((t) => ({
+    ...t,
+    amount: Number(t.amount),
+    notes: t.notes || undefined,
+    accountId: t.accountId || undefined,
+    accountName: t.account?.name,
+  }));
 }
 
 export async function createInvestment(
   userId: string,
   data: {
-    name: string
-    type: string
-    platform?: string
-    notes?: string
-    initialAmount?: number
-    accountId?: string
-  }
+    name: string;
+    type: string;
+    platform?: string;
+    notes?: string;
+    initialAmount?: number;
+    accountId?: string;
+  },
 ) {
   const { initialAmount, accountId } = data;
   if (initialAmount !== undefined && accountId) {
     return await db.$transaction(async (tx) => {
-      const acc = await tx.account.findUnique({ where: { id: accountId } })
-      if (!acc || acc.userId !== userId) throw new Error("Unauthorized account")
-      
+      const acc = await tx.account.findUnique({ where: { id: accountId } });
+      if (!acc || acc.userId !== userId)
+        throw new Error("Unauthorized account");
+
       if (Number(acc.balance) < initialAmount) {
-        throw new Error("Insufficient account balance")
+        throw new Error("Insufficient account balance");
       }
 
       const inv = await tx.investment.create({
@@ -79,9 +113,9 @@ export async function createInvestment(
           notes: data.notes,
           totalInvested: initialAmount,
           currentValue: initialAmount,
-          status: "ACTIVE"
-        }
-      })
+          status: "ACTIVE",
+        },
+      });
 
       await tx.investmentTransaction.create({
         data: {
@@ -90,69 +124,80 @@ export async function createInvestment(
           type: "BUY",
           amount: initialAmount,
           date: new Date(),
-          notes: "Initial deposit"
-        }
-      })
+          notes: "Initial deposit",
+        },
+      });
 
       if (accountId) {
         await tx.account.update({
           where: { id: accountId },
-          data: { balance: { decrement: initialAmount } }
-        })
-        
+          data: { balance: { decrement: initialAmount } },
+        });
+
         await tx.transaction.create({
           data: {
             userId,
-            type: 'EXPENSE',
+            type: "EXPENSE",
             amount: initialAmount,
             date: new Date(),
             description: `Investasi: ${data.name}`,
-            notes: data.notes || 'Pembelian investasi awal',
+            notes: data.notes || "Pembelian investasi awal",
             sourceAccountId: accountId,
-          }
-        })
+          },
+        });
       }
 
-      return inv
-    })
+      return inv;
+    });
   }
 
-
-  throw new Error("Initial amount and account are required")
+  throw new Error("Initial amount and account are required");
 }
 
-export async function updateInvestmentValue(userId: string, id: string, newValue: number) {
-  const inv = await db.investment.findUnique({ where: { id } })
-  if (!inv || inv.userId !== userId) throw new Error("Unauthorized investment")
+export async function updateInvestmentValue(
+  userId: string,
+  id: string,
+  newValue: number,
+) {
+  const inv = await db.investment.findUnique({ where: { id } });
+  if (!inv || inv.userId !== userId) throw new Error("Unauthorized investment");
 
   if (Number(inv.totalInvested) <= 0 && newValue > 0) {
-    throw new Error("Cannot update value of an empty investment. Please buy or deposit first.")
+    throw new Error(
+      "Cannot update value of an empty investment. Please buy or deposit first.",
+    );
   }
 
   return await db.investment.update({
     where: { id },
-    data: { currentValue: newValue }
-  })
+    data: { currentValue: newValue },
+  });
 }
 
 export async function addInvestmentTransaction(
   userId: string,
   data: {
-    investmentId: string
-    accountId?: string
-    type: string // BUY, SELL, DEPOSIT, WITHDRAW, DIVIDEND, INTEREST, FEE
-    amount: number
-    date: Date
-    notes?: string
-  }
+    investmentId: string;
+    accountId?: string;
+    type: string; // BUY, SELL, DEPOSIT, WITHDRAW, DIVIDEND, INTEREST, FEE
+    amount: number;
+    date: Date;
+    notes?: string;
+  },
 ) {
   return await db.$transaction(async (tx) => {
-    const inv = await tx.investment.findUnique({ where: { id: data.investmentId } })
-    if (!inv || inv.userId !== userId) throw new Error("Unauthorized investment")
+    const inv = await tx.investment.findUnique({
+      where: { id: data.investmentId },
+    });
+    if (!inv || inv.userId !== userId)
+      throw new Error("Unauthorized investment");
 
     if (data.accountId) {
-      const acc = await tx.account.findUnique({ where: { id: data.accountId } })
-      if (!acc || acc.userId !== userId) throw new Error("Unauthorized account")
+      const acc = await tx.account.findUnique({
+        where: { id: data.accountId },
+      });
+      if (!acc || acc.userId !== userId)
+        throw new Error("Unauthorized account");
     }
 
     // 1. Create transaction
@@ -164,176 +209,187 @@ export async function addInvestmentTransaction(
         amount: data.amount,
         date: data.date,
         notes: data.notes,
-      }
-    })
+      },
+    });
 
     // 2. Update investment totals
     if (data.type === "BUY") {
-      if (!data.accountId) throw new Error("Account is required for BUY")
-      const acc = await tx.account.findUnique({ where: { id: data.accountId } })
-      if (!acc || Number(acc.balance) < data.amount) throw new Error("Insufficient account balance")
+      if (!data.accountId) throw new Error("Account is required for BUY");
+      const acc = await tx.account.findUnique({
+        where: { id: data.accountId },
+      });
+      if (!acc || Number(acc.balance) < data.amount)
+        throw new Error("Insufficient account balance");
 
       await tx.investment.update({
         where: { id: data.investmentId },
-        data: { 
+        data: {
           totalInvested: { increment: data.amount },
           currentValue: { increment: data.amount },
-          status: "ACTIVE"
-        }
-      })
+          status: "ACTIVE",
+        },
+      });
       await tx.account.update({
         where: { id: data.accountId },
-        data: { balance: { decrement: data.amount } }
-      })
+        data: { balance: { decrement: data.amount } },
+      });
 
-      const catId = await getOrCreateInvestmentCategory(tx, userId, "EXPENSE")
-      const platformStr = inv.platform ? ` di ${inv.platform}` : ''
+      const catId = await getOrCreateInvestmentCategory(tx, userId, "EXPENSE");
+      const platformStr = inv.platform ? ` di ${inv.platform}` : "";
       await tx.transaction.create({
         data: {
           userId,
-          type: 'EXPENSE',
+          type: "EXPENSE",
           amount: data.amount,
           date: data.date,
           description: inv.name,
           notes: data.notes,
           categoryId: catId,
           sourceAccountId: data.accountId,
-        }
-      })
+        },
+      });
     } else if (data.type === "SELL") {
       // Proportional cost-basis allocation for SELL
-      const cv = Number(inv.currentValue)
-      const totalInv = Number(inv.totalInvested)
-      
+      const cv = Number(inv.currentValue);
+      const totalInv = Number(inv.totalInvested);
+
       if (data.amount > cv) {
-        throw new Error("Cannot sell more than current value")
+        throw new Error("Cannot sell more than current value");
       }
-      
-      let saleRatio = 0
+
+      let saleRatio = 0;
       if (cv > 0) {
-        saleRatio = data.amount / cv
+        saleRatio = data.amount / cv;
       }
-      
+
       // If it's a full sale (amount is equal to current value)
       if (data.amount === cv) {
-         const realizedGain = data.amount - totalInv
-         await tx.investment.update({
-           where: { id: data.investmentId },
-           data: {
-             totalInvested: 0,
-             currentValue: 0,
-             realizedGain: { increment: realizedGain },
-             cashBalance: data.accountId ? undefined : { increment: data.amount },
-             status: "SOLD"
-           }
-         })
+        const realizedGain = data.amount - totalInv;
+        await tx.investment.update({
+          where: { id: data.investmentId },
+          data: {
+            totalInvested: 0,
+            currentValue: 0,
+            realizedGain: { increment: realizedGain },
+            cashBalance: data.accountId
+              ? undefined
+              : { increment: data.amount },
+            status: "SOLD",
+          },
+        });
       } else {
-         const costBasisReduced = totalInv * saleRatio
-         const realizedGain = data.amount - costBasisReduced
-         await tx.investment.update({
-           where: { id: data.investmentId },
-           data: {
-             totalInvested: { decrement: costBasisReduced },
-             currentValue: { decrement: data.amount },
-             realizedGain: { increment: realizedGain },
-             cashBalance: data.accountId ? undefined : { increment: data.amount }
-           }
-         })
+        const costBasisReduced = totalInv * saleRatio;
+        const realizedGain = data.amount - costBasisReduced;
+        await tx.investment.update({
+          where: { id: data.investmentId },
+          data: {
+            totalInvested: { decrement: costBasisReduced },
+            currentValue: { decrement: data.amount },
+            realizedGain: { increment: realizedGain },
+            cashBalance: data.accountId
+              ? undefined
+              : { increment: data.amount },
+          },
+        });
       }
 
       if (data.accountId) {
         await tx.account.update({
           where: { id: data.accountId },
-          data: { balance: { increment: data.amount } }
-        })
-        const catId = await getOrCreateInvestmentCategory(tx, userId, "INCOME")
-        const platformStr = inv.platform ? ` di ${inv.platform}` : ''
+          data: { balance: { increment: data.amount } },
+        });
+        const catId = await getOrCreateInvestmentCategory(tx, userId, "INCOME");
+        const platformStr = inv.platform ? ` di ${inv.platform}` : "";
         await tx.transaction.create({
           data: {
             userId,
-            type: 'INCOME',
+            type: "INCOME",
             amount: data.amount,
             date: data.date,
             description: inv.name,
             notes: data.notes,
             categoryId: catId,
             destinationAccountId: data.accountId,
-          }
-        })
+          },
+        });
       }
     } else if (data.type === "WITHDRAW") {
-      if (!data.accountId) throw new Error("Account is required for WITHDRAW")
-      if (Number(inv.cashBalance) < data.amount) throw new Error("Insufficient investment cash balance")
-      
+      if (!data.accountId) throw new Error("Account is required for WITHDRAW");
+      if (Number(inv.cashBalance) < data.amount)
+        throw new Error("Insufficient investment cash balance");
+
       await tx.investment.update({
         where: { id: data.investmentId },
-        data: { cashBalance: { decrement: data.amount } }
-      })
-      
+        data: { cashBalance: { decrement: data.amount } },
+      });
+
       await tx.account.update({
         where: { id: data.accountId },
-        data: { balance: { increment: data.amount } }
-      })
+        data: { balance: { increment: data.amount } },
+      });
 
-      const catId = await getOrCreateInvestmentCategory(tx, userId, "INCOME")
-      const platformStr = inv.platform ? ` di ${inv.platform}` : ''
+      const catId = await getOrCreateInvestmentCategory(tx, userId, "INCOME");
+      const platformStr = inv.platform ? ` di ${inv.platform}` : "";
       await tx.transaction.create({
         data: {
           userId,
-          type: 'INCOME',
+          type: "INCOME",
           amount: data.amount,
           date: data.date,
           description: inv.name,
           notes: data.notes,
           categoryId: catId,
           destinationAccountId: data.accountId,
-        }
-      })
+        },
+      });
     } else if (data.type === "DEPOSIT") {
-      if (!data.accountId) throw new Error("Account is required for DEPOSIT")
-      const acc = await tx.account.findUnique({ where: { id: data.accountId } })
-      if (!acc || Number(acc.balance) < data.amount) throw new Error("Insufficient account balance")
-      
+      if (!data.accountId) throw new Error("Account is required for DEPOSIT");
+      const acc = await tx.account.findUnique({
+        where: { id: data.accountId },
+      });
+      if (!acc || Number(acc.balance) < data.amount)
+        throw new Error("Insufficient account balance");
+
       await tx.investment.update({
         where: { id: data.investmentId },
-        data: { cashBalance: { increment: data.amount } }
-      })
-      
+        data: { cashBalance: { increment: data.amount } },
+      });
+
       await tx.account.update({
         where: { id: data.accountId },
-        data: { balance: { decrement: data.amount } }
-      })
+        data: { balance: { decrement: data.amount } },
+      });
 
-      const catId = await getOrCreateInvestmentCategory(tx, userId, "EXPENSE")
-      const platformStr = inv.platform ? ` di ${inv.platform}` : ''
+      const catId = await getOrCreateInvestmentCategory(tx, userId, "EXPENSE");
+      const platformStr = inv.platform ? ` di ${inv.platform}` : "";
       await tx.transaction.create({
         data: {
           userId,
-          type: 'EXPENSE',
+          type: "EXPENSE",
           amount: data.amount,
           date: data.date,
           description: inv.name,
           notes: data.notes,
           categoryId: catId,
           sourceAccountId: data.accountId,
-        }
-      })
+        },
+      });
     }
-    
-    return transaction
-  })
+
+    return transaction;
+  });
 }
 
 export async function getInvestmentById(userId: string, id: string) {
   const inv = await db.investment.findUnique({
     where: { id },
     include: {
-      transactions: true
-    }
-  })
+      transactions: true,
+    },
+  });
 
   if (!inv || inv.userId !== userId) {
-    throw new Error("Unauthorized investment")
+    throw new Error("Unauthorized investment");
   }
 
   return {
@@ -349,16 +405,16 @@ export async function getInvestmentById(userId: string, id: string) {
       ...t,
       amount: Number(t.amount),
       notes: t.notes || undefined,
-      accountId: t.accountId || undefined
-    }))
-  }
+      accountId: t.accountId || undefined,
+    })),
+  };
 }
 
 export async function deleteInvestment(userId: string, id: string) {
-  const inv = await db.investment.findUnique({ where: { id } })
-  if (!inv || inv.userId !== userId) throw new Error("Unauthorized investment")
+  const inv = await db.investment.findUnique({ where: { id } });
+  if (!inv || inv.userId !== userId) throw new Error("Unauthorized investment");
 
   return await db.investment.delete({
-    where: { id }
-  })
+    where: { id },
+  });
 }

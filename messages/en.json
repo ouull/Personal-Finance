@@ -11,6 +11,12 @@
   "dashboard": {
     "title": "Dashboard",
     "greeting": "Hello, {name}. Here is your financial summary.",
+    "goodMorning": "Good Morning",
+    "goodAfternoon": "Good Afternoon",
+    "goodLateAfternoon": "Good Afternoon",
+    "goodEvening": "Good Evening",
+    "today": "Today",
+    "yesterday": "Yesterday",
     "netWorth": "Net Worth",
     "availableCash": "Available Cash",
     "invested": "Invested",
@@ -161,7 +167,15 @@
     "expense": "Expense",
     "transfer": "Transfer",
     "allTypes": "All Types",
-    "allAccounts": "All Accounts"
+    "allAccounts": "All Accounts",
+    "payFrom": "Pay from",
+    "depositTo": "Deposit to",
+    "note": "Note (Optional)",
+    "notePlaceholder": "What was this for?",
+    "toAccount": "To Account",
+    "editDescription": "Update details below.",
+    "saveTransaction": "Save Transaction",
+    "confirmDelete": "Are you sure you want to delete this transaction?"
   },
   "accountsPage": {
     "title": "Accounts",
@@ -224,7 +238,21 @@
     "paid": "Paid",
     "overdue": "Overdue",
     "receiveRepayment": "Receive Repayment",
-    "payFull": "Pay in full"
+    "payFull": "Pay in full",
+    "owedToMe": "Owed to Me",
+    "iOwe": "I Owe",
+    "lenderName": "Lender Name",
+    "destAccount": "Save to Account",
+    "payDebt": "Pay Debt",
+    "repaymentExceed": "Repayment amount cannot exceed remaining balance",
+    "withdrawFrom": "Withdraw from Account",
+    "recordRepayment": "Record Repayment",
+    "payDebtDescription": "Record paying back a lender.",
+    "transactionHistory": "Transaction History",
+    "paidDebt": "Paid debt",
+    "receivedRepayment": "Received repayment",
+    "borrowedMoney": "Borrowed money",
+    "lentMoney": "Lent money"
   },
   "investmentsPage": {
     "title": "Investments",
@@ -243,7 +271,42 @@
     "sourceAccount": "Source of Funds (Investment Account)",
     "purchasePrice": "Total Purchase Price",
     "purchaseDate": "Purchase Date",
-    "notes": "Notes (Optional)"
+    "notes": "Notes (Optional)",
+    "portfolioTitle": "Your Portfolio",
+    "invested": "Invested",
+    "currentValue": "Current Value",
+    "unrealizedReturn": "Unrealized Return",
+    "returnPct": "Return %",
+    "totalRealizedGain": "Total Realized Gain",
+    "cashBalance": "Cash Balance",
+    "transactionHistory": "Transaction History",
+    "noTransactionHistory": "No transaction history yet.",
+    "backToInvestments": "Back to Investments",
+    "buy": "Buy",
+    "sell": "Sell",
+    "deposit": "Deposit",
+    "withdraw": "Withdraw",
+    "dividend": "Dividend",
+    "interest": "Interest",
+    "fee": "Fee",
+    "sold": "Sold",
+    "addInvestmentDesc": "Create a new portfolio to track your assets.",
+    "portfolioName": "Portfolio Name",
+    "portfolioNamePlaceholder": "e.g. S&P 500 ETF, Apple Stock",
+    "assetType": "Asset Type",
+    "platform": "Platform / Broker (Optional)",
+    "platformPlaceholder": "e.g. Robinhood, Binance",
+    "initialAmount": "Initial Investment",
+    "selectAccount": "Select account",
+    "notesPlaceholder": "e.g. Long term target"
+  },
+  "assetTypes": {
+    "STOCK": "Stock",
+    "MUTUAL_FUND": "Mutual Fund",
+    "BOND": "Bond",
+    "GOLD": "Gold",
+    "CRYPTO": "Crypto",
+    "OTHER": "Other"
   },
   "recurringPage": {
     "title": "Recurring",
@@ -276,7 +339,36 @@
     "targetAmount": "Target Amount",
     "currentAmount": "Current Balance (Optional)",
     "targetDate": "Target Date",
-    "notes": "Notes (Optional)"
+    "notes": "Notes (Optional)",
+    "namePlaceholder": "e.g. Netflix",
+    "type": "Type",
+    "billingCycle": "Billing Cycle",
+    "amount": "Amount",
+    "sourceAccount": "Auto-deduct from Account",
+    "category": "Category",
+    "nextDueDate": "Next Due Date",
+    "reminderDays": "Remind me before (days)",
+    "notes": "Notes (Optional)",
+    "notesPlaceholder": "e.g. Shared with Andi",
+    "status": "Status",
+    "selectType": "Select type",
+    "selectCycle": "Select cycle"
+  },
+  "recurringTypes": {
+    "SUBSCRIPTION": "Subscription",
+    "BILL": "Bill",
+    "RECURRING_EXPENSE": "Recurring Expense"
+  },
+  "billingCycles": {
+    "WEEKLY": "Weekly",
+    "MONTHLY": "Monthly",
+    "QUARTERLY": "Quarterly",
+    "YEARLY": "Yearly"
+  },
+  "statuses": {
+    "ACTIVE": "Active",
+    "PAUSED": "Paused",
+    "CANCELLED": "Cancelled"
   },
   "categoriesPage": {
     "title": "Categories",
@@ -302,7 +394,16 @@
     "selectCategory": "Select category",
     "addExpense": "Record Expense",
     "addIncome": "Record Income",
-    "addTransfer": "Record Transfer"
+    "addTransfer": "Record Transfer",
+    "merchant": "Merchant (Optional)",
+    "title": "Quick Capture",
+    "subtitle": "Add an expense in seconds",
+    "fillRequired": "Please fill in Amount, Account, and Category",
+    "successMessage": "Transaction captured fast!",
+    "failMessage": "Failed to capture transaction",
+    "networkError": "Network error",
+    "merchantPlaceholder": "e.g. Starbucks, Steam, etc",
+    "notesPlaceholder": "What was this for?"
   },
   "errors": {
     "category_type_mismatch": "Category type does not match transaction type.",

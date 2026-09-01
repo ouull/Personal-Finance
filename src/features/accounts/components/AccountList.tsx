@@ -1,71 +1,116 @@
-"use client"
+"use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Wallet, Building2, Smartphone, TrendingUp } from "lucide-react"
-import { AddCashDialog } from "./AddCashDialog"
-import { DeleteAccountDialog } from "./DeleteAccountDialog"
-import { useTranslation } from "@/lib/TranslationContext"
-import { useCurrency } from "@/lib/CurrencyContext"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Wallet, Building2, Smartphone, TrendingUp } from "lucide-react";
+import { AddCashDialog } from "./AddCashDialog";
+import { DeleteAccountDialog } from "./DeleteAccountDialog";
+import { useTranslation } from "@/lib/TranslationContext";
+import { useCurrency } from "@/lib/CurrencyContext";
 
 // Gunakan tipe dari Prisma atau custom interface
 interface Account {
-  id: string
-  name: string
-  type: string
-  balance: any
-  currency: string
+  id: string;
+  name: string;
+  type: string;
+  balance: any;
+  currency: string;
 }
 
-const icons: Record<string, React.ReactNode> = {
-  CASH: <Wallet className="h-5 w-5 text-emerald-500" />,
-  BANK: <Building2 className="h-5 w-5 text-blue-500" />,
-  EWALLET: <Smartphone className="h-5 w-5 text-purple-500" />,
-  INVESTMENT: <TrendingUp className="h-5 w-5 text-orange-500" />,
-}
+const icons: Record<
+  string,
+  { icon: React.ReactNode; bg: string; text: string }
+> = {
+  CASH: {
+    icon: <Wallet className="h-5 w-5" />,
+    bg: "bg-emerald-50 text-emerald-600",
+    text: "Uang Tunai",
+  },
+  BANK: {
+    icon: <Building2 className="h-5 w-5" />,
+    bg: "bg-blue-50 text-blue-600",
+    text: "Rekening Bank",
+  },
+  EWALLET: {
+    icon: <Smartphone className="h-5 w-5" />,
+    bg: "bg-slate-100 text-slate-700",
+    text: "Dompet Digital",
+  },
+  INVESTMENT: {
+    icon: <TrendingUp className="h-5 w-5" />,
+    bg: "bg-orange-50 text-orange-600",
+    text: "Investasi",
+  },
+};
 
 export function AccountList({ accounts }: { accounts: Account[] }) {
-  const { t } = useTranslation()
+  const { t } = useTranslation();
+  const { formatRupiah } = useCurrency();
 
   if (accounts.length === 0) {
     return (
       <div className="text-center p-8 border rounded-lg bg-white/50 border-dashed">
-        <p className="text-muted-foreground text-sm">{t.accountsPage?.empty || "No accounts yet."}</p>
+        <p className="text-muted-foreground text-sm">
+          {t.accountsPage?.empty || "No accounts yet."}
+        </p>
       </div>
-    )
+    );
   }
 
-  const { formatRupiah } = useCurrency()
+
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-      {accounts.map((account) => (
-        <Card key={account.id} className="bg-white/60 backdrop-blur-xl border-white/40 hover:shadow-xl hover:-translate-y-1 hover:bg-white/80 transition-all duration-300">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-base font-medium">
-              {account.name}
-            </CardTitle>
-            <div className="flex items-center gap-2">
-              {account.type !== "CASH" && (
-                <DeleteAccountDialog accountId={account.id} accountName={account.name} />
-              )}
-              {icons[account.type] || <Wallet className="h-4 w-4 text-muted-foreground" />}
+    <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-1">
+      {accounts.map((account) => {
+        const typeStyle = icons[account.type] || {
+          icon: <Wallet className="h-5 w-5" />,
+          bg: "bg-slate-50 text-slate-500",
+          text: account.type,
+        };
+
+        return (
+          <div
+            key={account.id}
+            className="bg-white rounded-[24px] p-6 shadow-[0_2px_12px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)] hover:-translate-y-0.5 transition-all duration-300 flex flex-col relative group"
+          >
+            {account.type !== "CASH" && (
+              <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                <DeleteAccountDialog
+                  accountId={account.id}
+                  accountName={account.name}
+                />
+              </div>
+            )}
+
+            <div className="flex items-center gap-3">
+              <div
+                className={`w-12 h-12 rounded-2xl flex items-center justify-center ${typeStyle.bg}`}
+              >
+                {typeStyle.icon}
+              </div>
+              <div className="flex flex-col">
+                <h3 className="font-bold text-slate-900 text-lg">
+                  {account.name}
+                </h3>
+                <span className="text-xs font-medium text-slate-500">
+                  {typeStyle.text}
+                </span>
+              </div>
             </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-slate-900 tracking-tight">
-              {formatRupiah(Number(account.balance))}
+
+            <div className="mt-8">
+              <div className="text-[28px] font-black text-slate-900 tracking-tight">
+                {formatRupiah(Number(account.balance))}
+              </div>
             </div>
-            <p className="text-sm text-muted-foreground mt-1">
-              {account.type === "CASH" ? "Cash" : account.type === "BANK" ? (t.accountsPage?.bank || "Bank") : account.type === "EWALLET" ? (t.accountsPage?.ewallet || "E-Wallet") : (t.accountsPage?.investment || "Investment")}
-            </p>
-          </CardContent>
-          {account.type === "CASH" && (
-            <div className="px-6 pb-6 pt-2">
-              <AddCashDialog accountId={account.id} />
-            </div>
-          )}
-        </Card>
-      ))}
+
+            {account.type === "CASH" && (
+              <div className="mt-6 pt-4 border-t border-slate-100">
+                <AddCashDialog accountId={account.id} />
+              </div>
+            )}
+          </div>
+        );
+      })}
     </div>
-  )
+  );
 }

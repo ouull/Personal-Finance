@@ -1,23 +1,25 @@
-import { getCategories } from "@/features/categories/actions"
-import { CategoryList } from "@/features/categories/components/CategoryList"
-import { CategoryDialog } from "@/features/categories/components/CategoryDialog"
-import { FadeIn } from "@/components/MotionWrapper"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
-import { redirect } from "next/navigation"
-import { FolderOpen } from "lucide-react"
-import { getTranslation } from "@/lib/i18n"
+import { getCategories } from "@/features/categories/actions";
+import { CategoryList } from "@/features/categories/components/CategoryList";
+import { CategoryDialog } from "@/features/categories/components/CategoryDialog";
+import { FadeIn } from "@/components/MotionWrapper";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { redirect } from "next/navigation";
+import { FolderOpen } from "lucide-react";
+import { getTranslation } from "@/lib/i18n";
 
 export default async function CategoriesPage() {
-  const { t } = await getTranslation()
-  const session = await getServerSession(authOptions)
+  const { t } = await getTranslation();
+  const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
-    redirect("/auth/login")
+    redirect("/auth/login");
   }
 
   // Pass includeInactive = true so we can see archived categories
-  const categoriesResult = await getCategories(undefined, true)
-  const categories = categoriesResult.success ? categoriesResult.data || [] : []
+  const categoriesResult = await getCategories(undefined, true);
+  const categories = categoriesResult.success
+    ? categoriesResult.data || []
+    : [];
 
   return (
     <div className="space-y-8 pb-10">
@@ -28,10 +30,13 @@ export default async function CategoriesPage() {
               <FolderOpen className="w-8 h-8" />
             </div>
             <div>
-              <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900 pb-1">{t.categoriesPage?.title || "Categories"}</h1>
-            <p className="text-muted-foreground mt-1 text-base">
-              {t.categoriesPage?.description || "Customize categories to organize your financial transactions."}
-            </p>
+              <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900 pb-1">
+                {t.categoriesPage?.title || "Categories"}
+              </h1>
+              <p className="text-muted-foreground mt-1 text-base">
+                {t.categoriesPage?.description ||
+                  "Customize categories to organize your financial transactions."}
+              </p>
             </div>
           </div>
           <div className="flex gap-2">
@@ -44,5 +49,5 @@ export default async function CategoriesPage() {
         <CategoryList categories={categories} />
       </FadeIn>
     </div>
-  )
+  );
 }

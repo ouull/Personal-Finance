@@ -4,9 +4,10 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import Providers from "@/components/Providers";
 import { Navigation } from "@/components/Navigation";
+import { MobileNavigation } from "@/components/MobileNavigation";
 import { QuickCaptureWrapper } from "@/components/QuickCaptureWrapper";
 import { CurrencyProvider } from "@/lib/CurrencyContext";
-
+import { PageTransition } from "@/components/PageTransition";
 const inter = Inter({
   variable: "--font-sans",
   subsets: ["latin"],
@@ -36,15 +37,21 @@ export default async function RootLayout({
   return (
     <html lang={language === "ID" ? "id" : "en"}>
       <body
-        className={`${inter.variable} ${jetbrainsMono.variable} font-sans antialiased bg-slate-50 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-indigo-50 via-white to-cyan-50 min-h-screen selection:bg-indigo-100 selection:text-indigo-900`}
+        className={`${inter.variable} ${jetbrainsMono.variable} font-sans antialiased bg-[#FCFCFD] min-h-screen selection:bg-black selection:text-white flex overflow-hidden`}
       >
         <TranslationProvider dictionary={t} language={language}>
           <Providers>
             <CurrencyProvider>
-              <div className="min-h-screen flex flex-col max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8 relative">
-                <Navigation translations={(t as any).navigation || {}} />
-                {children}
-                <QuickCaptureWrapper />
+              {/* Sidebar */}
+              <Navigation translations={(t as any).navigation || {}} />
+              <MobileNavigation translations={(t as any).navigation || {}} />
+
+              {/* Main Content Area */}
+              <div className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto">
+                <div className="max-w-6xl w-full mx-auto px-4 pt-6 pb-24 md:px-10 md:py-10">
+                  <PageTransition>{children}</PageTransition>
+                  <QuickCaptureWrapper />
+                </div>
               </div>
               <Toaster />
             </CurrencyProvider>

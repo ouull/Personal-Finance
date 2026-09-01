@@ -1,6 +1,10 @@
-import { db } from "@/lib/db"
+import { db } from "@/lib/db";
 
-async function getOrCreateLendingCategory(tx: any, userId: string, type: "INCOME" | "EXPENSE") {
+async function getOrCreateLendingCategory(
+  tx: any,
+  userId: string,
+  type: "INCOME" | "EXPENSE",
+) {
   const slug = type === "EXPENSE" ? "lending_expense" : "lending_income";
   let cat = await tx.category.findFirst({ where: { userId, slug } });
   if (!cat) {
@@ -13,8 +17,8 @@ async function getOrCreateLendingCategory(tx: any, userId: string, type: "INCOME
         icon: "CreditCard",
         color: type === "EXPENSE" ? "indigo" : "emerald",
         isDefault: true,
-        isActive: true
-      }
+        isActive: true,
+      },
     });
   }
   return cat.id;
@@ -26,12 +30,15 @@ export async function getLoans(userId: string) {
     orderBy: { createdAt: "desc" },
     include: {
       account: true,
-      repayments: true
-    }
-  })
+      repayments: true,
+    },
+  });
 
   const serializedLoans = loans.map((loan) => {
-    const totalRepaid = loan.repayments.reduce((sum, r) => sum + Number(r.amount), 0)
+    const totalRepaid = loan.repayments.reduce(
+      (sum, r) => sum + Number(r.amount),
+      0,
+    );
     return {
       ...loan,
       amount: Number(loan.amount),
@@ -41,33 +48,36 @@ export async function getLoans(userId: string) {
       notes: loan.notes || undefined, // Fix null to undefined
       account: {
         ...loan.account,
-        balance: Number(loan.account.balance)
+        balance: Number(loan.account.balance),
       },
       repayments: loan.repayments.map((r) => ({
         ...r,
-        amount: Number(r.amount)
-      }))
-    }
-  })
+        amount: Number(r.amount),
+      })),
+    };
+  });
 
-  return serializedLoans
+  return serializedLoans;
 }
 
 export async function createLoan(
   userId: string,
   data: {
-    accountId: string
-    borrowerName: string
-    type?: string
-    amount: number
-    lentDate: Date
-    dueDate?: Date
-    notes?: string
-  }
+    accountId: string;
+    borrowerName: string;
+    type?: string;
+    amount: number;
+    lentDate: Date;
+    dueDate?: Date;
+    notes?: string;
+  },
 ) {
   return await db.$transaction(async (tx) => {
-    const account = await tx.account.findUnique({ where: { id: data.accountId } })
-    if (!account || account.userId !== userId) throw new Error("Unauthorized account")
+    const account = await tx.account.findUnique({
+      where: { id: data.accountId },
+    });
+    if (!account || account.userId !== userId)
+      throw new Error("Unauthorized account");
 
     // 1. Create loan
     const loan = await tx.loan.create({
@@ -80,28 +90,33 @@ export async function createLoan(
         lentDate: data.lentDate,
         dueDate: data.dueDate,
         notes: data.notes,
-        status: "OUTSTANDING"
-      }
-    })
+        status: "OUTSTANDING",
+      },
+    });
 
     // 2. Adjust account balance
-    const actualType = data.type || "LENT"
+    const actualType = data.type || "LENT";
     if (actualType === "LENT") {
-      if (Number(account.balance) < data.amount) throw new Error("INSUFFICIENT_BALANCE")
+      if (Number(account.balance) < data.amount)
+        throw new Error("INSUFFICIENT_BALANCE");
       await tx.account.update({
         where: { id: data.accountId },
-        data: { balance: { decrement: data.amount } }
-      })
+        data: { balance: { decrement: data.amount } },
+      });
     } else {
       await tx.account.update({
         where: { id: data.accountId },
-        data: { balance: { increment: data.amount } }
-      })
+        data: { balance: { increment: data.amount } },
+      });
     }
 
     // 3. Create a transaction record
     if (actualType === "LENT") {
-      const categoryId = await getOrCreateLendingCategory(tx, userId, "EXPENSE");
+      const categoryId = await getOrCreateLendingCategory(
+        tx,
+        userId,
+        "EXPENSE",
+      );
       await tx.transaction.create({
         data: {
           userId,
@@ -111,9 +126,9 @@ export async function createLoan(
           amount: data.amount,
           date: data.lentDate,
           description: data.borrowerName,
-          notes: data.notes
-        }
-      })
+          notes: data.notes,
+        },
+      });
     } else {
       const categoryId = await getOrCreateLendingCategory(tx, userId, "INCOME");
       await tx.transaction.create({
@@ -125,41 +140,47 @@ export async function createLoan(
           amount: data.amount,
           date: data.lentDate,
           description: data.borrowerName,
-          notes: data.notes
-        }
-      })
+          notes: data.notes,
+        },
+      });
     }
 
-    return loan
-  })
+    return loan;
+  });
 }
 
 export async function addRepayment(
   userId: string,
   data: {
-    loanId: string
-    accountId: string
-    amount: number
-    paidDate: Date
-    notes?: string
-  }
+    loanId: string;
+    accountId: string;
+    amount: number;
+    paidDate: Date;
+    notes?: string;
+  },
 ) {
   return await db.$transaction(async (tx) => {
-    const loan = await tx.loan.findUnique({ 
+    const loan = await tx.loan.findUnique({
       where: { id: data.loanId },
-      include: { repayments: true }
-    })
-    if (!loan || loan.userId !== userId) throw new Error("Unauthorized loan")
+      include: { repayments: true },
+    });
+    if (!loan || loan.userId !== userId) throw new Error("Unauthorized loan");
 
-    const totalRepaid = loan.repayments.reduce((sum, r) => sum + Number(r.amount), 0)
-    const outstanding = Number(loan.amount) - totalRepaid
+    const totalRepaid = loan.repayments.reduce(
+      (sum, r) => sum + Number(r.amount),
+      0,
+    );
+    const outstanding = Number(loan.amount) - totalRepaid;
 
     if (data.amount > outstanding) {
-      throw new Error("Repayment exceeds outstanding amount")
+      throw new Error("Repayment exceeds outstanding amount");
     }
 
-    const account = await tx.account.findUnique({ where: { id: data.accountId } })
-    if (!account || account.userId !== userId) throw new Error("Unauthorized account")
+    const account = await tx.account.findUnique({
+      where: { id: data.accountId },
+    });
+    if (!account || account.userId !== userId)
+      throw new Error("Unauthorized account");
 
     // 1. Create repayment
     const repayment = await tx.repayment.create({
@@ -169,31 +190,33 @@ export async function addRepayment(
         amount: data.amount,
         paidDate: data.paidDate,
         notes: data.notes,
-      }
-    })
+      },
+    });
 
     // 2. Adjust account balance
     if (loan.type === "LENT") {
       await tx.account.update({
         where: { id: data.accountId },
-        data: { balance: { increment: data.amount } }
-      })
+        data: { balance: { increment: data.amount } },
+      });
     } else {
-      if (Number(account.balance) < data.amount) throw new Error("INSUFFICIENT_BALANCE")
+      if (Number(account.balance) < data.amount)
+        throw new Error("INSUFFICIENT_BALANCE");
       await tx.account.update({
         where: { id: data.accountId },
-        data: { balance: { decrement: data.amount } }
-      })
+        data: { balance: { decrement: data.amount } },
+      });
     }
 
     // 3. Update loan status
-    const newTotalRepaid = totalRepaid + data.amount
-    const newStatus = newTotalRepaid >= Number(loan.amount) ? "PAID" : "PARTIALLY_PAID"
+    const newTotalRepaid = totalRepaid + data.amount;
+    const newStatus =
+      newTotalRepaid >= Number(loan.amount) ? "PAID" : "PARTIALLY_PAID";
 
     await tx.loan.update({
       where: { id: data.loanId },
-      data: { status: newStatus }
-    })
+      data: { status: newStatus },
+    });
 
     // 4. Create a transaction record for repayment
     if (loan.type === "LENT") {
@@ -207,11 +230,15 @@ export async function addRepayment(
           amount: data.amount,
           date: data.paidDate,
           description: loan.borrowerName,
-          notes: data.notes
-        }
-      })
+          notes: data.notes,
+        },
+      });
     } else {
-      const categoryId = await getOrCreateLendingCategory(tx, userId, "EXPENSE");
+      const categoryId = await getOrCreateLendingCategory(
+        tx,
+        userId,
+        "EXPENSE",
+      );
       await tx.transaction.create({
         data: {
           userId,
@@ -221,13 +248,13 @@ export async function addRepayment(
           amount: data.amount,
           date: data.paidDate,
           description: loan.borrowerName,
-          notes: data.notes
-        }
-      })
+          notes: data.notes,
+        },
+      });
     }
 
-    return repayment
-  })
+    return repayment;
+  });
 }
 
 export async function getLoanById(userId: string, id: string) {
@@ -235,15 +262,18 @@ export async function getLoanById(userId: string, id: string) {
     where: { id },
     include: {
       account: true,
-      repayments: true
-    }
-  })
+      repayments: true,
+    },
+  });
 
   if (!loan || loan.userId !== userId) {
-    throw new Error("Unauthorized loan")
+    throw new Error("Unauthorized loan");
   }
 
-  const totalRepaid = loan.repayments.reduce((sum, r) => sum + Number(r.amount), 0)
+  const totalRepaid = loan.repayments.reduce(
+    (sum, r) => sum + Number(r.amount),
+    0,
+  );
   return {
     ...loan,
     amount: Number(loan.amount),
@@ -253,11 +283,11 @@ export async function getLoanById(userId: string, id: string) {
     notes: loan.notes || undefined,
     account: {
       ...loan.account,
-      balance: Number(loan.account.balance)
+      balance: Number(loan.account.balance),
     },
     repayments: loan.repayments.map((r) => ({
       ...r,
-      amount: Number(r.amount)
-    }))
-  }
+      amount: Number(r.amount),
+    })),
+  };
 }

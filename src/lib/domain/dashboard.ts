@@ -1,83 +1,108 @@
-import { db } from "@/lib/db"
+import { db } from "@/lib/db";
 
 export async function getDashboardStats(userId: string) {
   // 1. Account Balances
-  const accounts = await db.account.findMany({ where: { userId, isActive: true } })
-  const availableCash = accounts.reduce((sum, acc) => sum + Number(acc.balance), 0)
+  const accounts = await db.account.findMany({
+    where: { userId, isActive: true },
+  });
+  const availableCash = accounts.reduce(
+    (sum, acc) => sum + Number(acc.balance),
+    0,
+  );
 
   // 2. Receivables (Outstanding Loans)
   const loans = await db.loan.findMany({
-    where: { userId, status: { in: ["OUTSTANDING", "PARTIALLY_PAID", "OVERDUE"] } },
-    include: { repayments: true }
-  })
+    where: {
+      userId,
+      status: { in: ["OUTSTANDING", "PARTIALLY_PAID", "OVERDUE"] },
+    },
+    include: { repayments: true },
+  });
   const receivables = loans.reduce((sum, loan) => {
-    const repaid = loan.repayments.reduce((rSum, r) => rSum + Number(r.amount), 0)
-    return sum + (Number(loan.amount) - repaid)
-  }, 0)
+    const repaid = loan.repayments.reduce(
+      (rSum, r) => rSum + Number(r.amount),
+      0,
+    );
+    return sum + (Number(loan.amount) - repaid);
+  }, 0);
 
   // 3. Investments
   const investments = await db.investment.findMany({
-    where: { userId, status: "ACTIVE" }
-  })
-  const investedCapital = investments.reduce((sum, inv) => sum + Number(inv.totalInvested), 0)
-  const currentInvestmentValue = investments.reduce((sum, inv) => sum + Number(inv.currentValue), 0)
+    where: { userId, status: "ACTIVE" },
+  });
+  const investedCapital = investments.reduce(
+    (sum, inv) => sum + Number(inv.totalInvested),
+    0,
+  );
+  const currentInvestmentValue = investments.reduce(
+    (sum, inv) => sum + Number(inv.currentValue),
+    0,
+  );
 
-  const netWorth = availableCash + receivables + currentInvestmentValue
+  const netWorth = availableCash + receivables + currentInvestmentValue;
 
   // 4. Monthly Income and Expense
-  const startOfMonth = new Date()
-  startOfMonth.setDate(1)
-  startOfMonth.setHours(0, 0, 0, 0)
-  
-  const endOfMonth = new Date(startOfMonth)
-  endOfMonth.setMonth(endOfMonth.getMonth() + 1)
+  const startOfMonth = new Date();
+  startOfMonth.setDate(1);
+  startOfMonth.setHours(0, 0, 0, 0);
+
+  const endOfMonth = new Date(startOfMonth);
+  endOfMonth.setMonth(endOfMonth.getMonth() + 1);
 
   const currentMonthTransactions = await db.transaction.findMany({
     where: {
       userId,
-      date: { gte: startOfMonth, lt: endOfMonth }
+      date: { gte: startOfMonth, lt: endOfMonth },
     },
-    include: { category: true }
-  })
+    include: { category: true },
+  });
 
-  let monthlyIncome = 0
-  let monthlyExpense = 0
-  const spendingByCategory: Record<string, { value: number, slug: string | null, name: string }> = {}
+  let monthlyIncome = 0;
+  let monthlyExpense = 0;
+  const spendingByCategory: Record<
+    string,
+    { value: number; slug: string | null; name: string }
+  > = {};
 
   currentMonthTransactions.forEach((tx) => {
-    const amount = Number(tx.amount)
+    const amount = Number(tx.amount);
     if (tx.type === "INCOME") {
-      monthlyIncome += amount
+      monthlyIncome += amount;
     } else if (tx.type === "EXPENSE") {
-      monthlyExpense += amount
-      const catName = tx.category?.name || "Lainnya"
-      const catSlug = tx.category?.slug || null
+      monthlyExpense += amount;
+      const catName = tx.category?.name || "Lainnya";
+      const catSlug = tx.category?.slug || null;
       if (!spendingByCategory[catName]) {
-        spendingByCategory[catName] = { value: 0, slug: catSlug, name: catName }
+        spendingByCategory[catName] = {
+          value: 0,
+          slug: catSlug,
+          name: catName,
+        };
       }
-      spendingByCategory[catName].value += amount
+      spendingByCategory[catName].value += amount;
     }
-  })
+  });
 
-  const topSpendingCategory = Object.values(spendingByCategory)
-    .sort((a, b) => b.value - a.value)[0] || null
+  const topSpendingCategory =
+    Object.values(spendingByCategory).sort((a, b) => b.value - a.value)[0] ||
+    null;
 
   // 5. Upcoming Payments (Next 30 days + overdue)
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  const nextMonth = new Date(today)
-  nextMonth.setDate(nextMonth.getDate() + 30)
-  nextMonth.setHours(23, 59, 59, 999)
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const nextMonth = new Date(today);
+  nextMonth.setDate(nextMonth.getDate() + 30);
+  nextMonth.setHours(23, 59, 59, 999);
 
   const upcomingPayments = await db.recurringPayment.findMany({
     where: {
       userId,
       status: "ACTIVE",
-      nextDueDate: { lte: nextMonth }
+      nextDueDate: { lte: nextMonth },
     },
     orderBy: { nextDueDate: "asc" },
-    take: 5
-  })
+    take: 5,
+  });
 
   // 6. Recent Transactions
   const recentTransactions = await db.transaction.findMany({
@@ -88,14 +113,20 @@ export async function getDashboardStats(userId: string) {
       category: true,
       sourceAccount: true,
       destinationAccount: true,
-      merchant: true
-    }
-  })
+      merchant: true,
+    },
+  });
 
   // 7. Goals Summary
-  const goals = await db.goal.findMany({ where: { userId } })
-  const totalSavedForGoals = goals.reduce((sum, g) => sum + Number(g.currentAmount), 0)
-  const totalGoalTarget = goals.reduce((sum, g) => sum + Number(g.targetAmount), 0)
+  const goals = await db.goal.findMany({ where: { userId } });
+  const totalSavedForGoals = goals.reduce(
+    (sum, g) => sum + Number(g.currentAmount),
+    0,
+  );
+  const totalGoalTarget = goals.reduce(
+    (sum, g) => sum + Number(g.targetAmount),
+    0,
+  );
 
   return {
     netWorth,
@@ -106,15 +137,15 @@ export async function getDashboardStats(userId: string) {
     monthlyIncome,
     monthlyExpense,
     topSpendingCategory,
-    upcomingPayments: upcomingPayments.map(p => ({
+    upcomingPayments: upcomingPayments.map((p) => ({
       ...p,
-      amount: Number(p.amount)
+      amount: Number(p.amount),
     })),
-    recentTransactions: recentTransactions.map(t => ({
+    recentTransactions: recentTransactions.map((t) => ({
       ...t,
-      amount: Number(t.amount)
+      amount: Number(t.amount),
     })),
     totalSavedForGoals,
-    totalGoalTarget
-  }
+    totalGoalTarget,
+  };
 }

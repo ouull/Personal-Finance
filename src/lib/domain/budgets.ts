@@ -1,38 +1,40 @@
-import { db } from "@/lib/db"
-import { BudgetFormValues } from "@/shared/schemas/budgets"
+import { db } from "@/lib/db";
+import { BudgetFormValues } from "@/shared/schemas/budgets";
 
 export async function getBudgets(userId: string, month: number, year: number) {
   const budgets = await db.budget.findMany({
     where: { userId, month, year },
-    include: { category: true }
-  })
+    include: { category: true },
+  });
 
-  const startOfMonth = new Date(year, month - 1, 1)
-  const endOfMonth = new Date(year, month, 0, 23, 59, 59, 999)
+  const startOfMonth = new Date(year, month - 1, 1);
+  const endOfMonth = new Date(year, month, 0, 23, 59, 59, 999);
 
   const expenses = await db.transaction.groupBy({
-    by: ['categoryId'],
+    by: ["categoryId"],
     where: {
       userId,
-      type: 'EXPENSE',
+      type: "EXPENSE",
       date: {
         gte: startOfMonth,
-        lte: endOfMonth
+        lte: endOfMonth,
       },
-      categoryId: { not: null }
+      categoryId: { not: null },
     },
     _sum: {
-      amount: true
-    }
-  })
+      amount: true,
+    },
+  });
 
-  const spentMap = new Map(expenses.map(e => [e.categoryId, Number(e._sum.amount || 0)]))
+  const spentMap = new Map(
+    expenses.map((e) => [e.categoryId, Number(e._sum.amount || 0)]),
+  );
 
-  return budgets.map(b => ({
+  return budgets.map((b) => ({
     ...b,
     amount: Number(b.amount),
-    spent: spentMap.get(b.categoryId) || 0
-  }))
+    spent: spentMap.get(b.categoryId) || 0,
+  }));
 }
 
 export async function setBudget(userId: string, parsed: BudgetFormValues) {
@@ -42,26 +44,26 @@ export async function setBudget(userId: string, parsed: BudgetFormValues) {
         userId,
         categoryId: parsed.categoryId,
         month: parsed.month,
-        year: parsed.year
-      }
+        year: parsed.year,
+      },
     },
     update: {
-      amount: parsed.amount
+      amount: parsed.amount,
     },
     create: {
       userId,
       categoryId: parsed.categoryId,
       amount: parsed.amount,
       month: parsed.month,
-      year: parsed.year
-    }
-  })
+      year: parsed.year,
+    },
+  });
 }
 
 export async function deleteBudget(userId: string, id: string) {
-  const budget = await db.budget.findUnique({ where: { id } })
+  const budget = await db.budget.findUnique({ where: { id } });
   if (!budget || budget.userId !== userId) {
-    throw new Error("Budget not found or unauthorized")
+    throw new Error("Budget not found or unauthorized");
   }
-  return await db.budget.delete({ where: { id } })
+  return await db.budget.delete({ where: { id } });
 }
