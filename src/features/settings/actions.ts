@@ -70,10 +70,10 @@ export async function resetAllFinancialData() {
       // Transactions have relations to accounts and categories
       await tx.transaction.deleteMany({ where: { userId } });
 
-      // Now safe to delete accounts and categories
+      // Now safe to delete accounts, merchants, and categories
       await tx.account.deleteMany({ where: { userId } });
-      await tx.category.deleteMany({ where: { userId } });
       await tx.merchant.deleteMany({ where: { userId } });
+      await tx.category.deleteMany({ where: { userId } });
 
       // Re-seed default Cash and Categories
       await seedUserFinancialData(userId, tx);
