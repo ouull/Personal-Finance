@@ -445,21 +445,23 @@ export async function seedUserFinancialData(
       existingCategories.map((c: any) => c.slug).filter(Boolean),
     );
 
-    for (const cat of defaultCategories) {
-      if (!existingSlugs.has(cat.slug)) {
-        await prismaTx.category.create({
-          data: {
-            userId,
-            name: cat.name,
-            slug: cat.slug,
-            type: cat.type,
-            icon: cat.icon,
-            color: cat.color,
-            isDefault: true,
-            isActive: true,
-          },
-        });
-      }
+    const categoriesToCreate = defaultCategories
+      .filter((cat) => !existingSlugs.has(cat.slug))
+      .map((cat) => ({
+        userId,
+        name: cat.name,
+        slug: cat.slug,
+        type: cat.type,
+        icon: cat.icon,
+        color: cat.color,
+        isDefault: true,
+        isActive: true,
+      }));
+
+    if (categoriesToCreate.length > 0) {
+      await prismaTx.category.createMany({
+        data: categoriesToCreate,
+      });
     }
   };
 
